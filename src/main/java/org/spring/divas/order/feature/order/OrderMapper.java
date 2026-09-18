@@ -36,13 +36,13 @@ public class OrderMapper {
         }
 
         Order order = Order.builder()
-                .userId(request.userId())
-                .tableId(request.tableId())
+                .userId(request.getUserId())
+                .tableId(request.getTableId())
                 .status(OrderStatus.NEW)
                 .build();
 
         order.setItems(
-                request.items()
+                request.getItems()
                         .stream()
                         .map(orderItemMapper::toEntity)
                         .toList()

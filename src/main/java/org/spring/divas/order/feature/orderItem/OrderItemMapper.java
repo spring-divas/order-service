@@ -25,8 +25,8 @@ public class OrderItemMapper {
         }
 
         return OrderItem.builder()
-                .dishId(request.dishId())
-                .quantity(request.quantity())
+                .dishId(request.getDishId())
+                .quantity(request.getQuantity())
                 .build();
     }
 }
