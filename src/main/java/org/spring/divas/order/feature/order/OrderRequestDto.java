@@ -23,6 +23,5 @@ public class OrderRequestDto {
         private Long tableId;
 
         @NotEmpty
-        @Valid
-        private List<OrderItemRequestDto> items;
+        private List<@Valid OrderItemRequestDto> items;
 }

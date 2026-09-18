@@ -2,6 +2,8 @@ package org.spring.divas.order.feature.orderItem;
 
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+
 @Component
 public class OrderItemMapper {
 
@@ -27,6 +29,8 @@ public class OrderItemMapper {
         return OrderItem.builder()
                 .dishId(request.getDishId())
                 .quantity(request.getQuantity())
+                .name("Temporary dish")
+                .price(BigDecimal.ZERO)
                 .build();
     }
 }
