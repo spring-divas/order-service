@@ -1,18 +1,16 @@
 package org.spring.divas.order.feature.order;
 
+import lombok.AllArgsConstructor;
 import org.spring.divas.order.feature.orderItem.OrderItemMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
 @Component
+@AllArgsConstructor
 public class OrderMapper {
 
     private final OrderItemMapper orderItemMapper;
-
-    public OrderMapper(OrderItemMapper orderItemMapper) {
-        this.orderItemMapper = orderItemMapper;
-    }
 
     public OrderResponseDto toResponse(Order order) {
         if (order == null) {

@@ -15,7 +15,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "order")
+@Table(name = "`order`")
 public class Order {
 
     @Id
@@ -38,7 +38,7 @@ public class Order {
     private LocalDateTime createdAt;
 
     @OneToMany(
-            mappedBy = "order",
+            mappedBy = "`order`",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
