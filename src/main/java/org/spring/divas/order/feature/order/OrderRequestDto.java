@@ -3,17 +3,26 @@ package org.spring.divas.order.feature.order;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.spring.divas.order.feature.orderItem.OrderItemRequestDto;
 
 import java.util.List;
 
-public record OrderRequestDto(
-        Long userId,
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class OrderRequestDto {
+
+        private Long userId;
 
         @NotNull
-        Long tableId,
+        private Long tableId;
 
         @NotEmpty
-        List<@Valid OrderItemRequestDto> items
-) {
+        @Valid
+        private List<OrderItemRequestDto> items;
 }
