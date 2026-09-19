@@ -38,7 +38,7 @@ public class Order {
     private LocalDateTime createdAt;
 
     @OneToMany(
-            mappedBy = "`order`",
+            mappedBy = "order",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )

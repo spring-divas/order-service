@@ -2,6 +2,7 @@ package org.spring.divas.order.feature.order;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderResponseDto> getAll() {
 
         return orderRepository.findAll()
@@ -32,6 +34,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OrderResponseDto getById(Long id) {
 
         Order found = orderRepository.findById(id)
