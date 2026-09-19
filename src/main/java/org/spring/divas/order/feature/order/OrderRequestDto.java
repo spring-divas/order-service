@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.spring.divas.order.feature.orderItem.OrderItemRequestDto;
+import org.spring.divas.order.feature.orderitem.OrderItemRequestDto;
 
 import java.util.List;
 
@@ -17,11 +17,11 @@ import java.util.List;
 @NoArgsConstructor
 public class OrderRequestDto {
 
-        private Long userId;
+    private Long userId;
 
-        @NotNull
-        private Long tableId;
+    @NotNull
+    private Long tableId;
 
-        @NotEmpty
-        private List<@Valid OrderItemRequestDto> items;
+    @NotEmpty
+    private List<@Valid OrderItemRequestDto> items;
 }

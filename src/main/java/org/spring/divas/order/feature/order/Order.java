@@ -3,7 +3,7 @@ package org.spring.divas.order.feature.order;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.spring.divas.order.feature.orderItem.OrderItem;
+import org.spring.divas.order.feature.orderitem.OrderItem;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

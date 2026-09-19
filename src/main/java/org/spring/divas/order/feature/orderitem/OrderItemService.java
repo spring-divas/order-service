@@ -1,4 +1,4 @@
-package org.spring.divas.order.feature.orderItem;
+package org.spring.divas.order.feature.orderitem;
 
 import java.util.List;
 
