@@ -10,6 +10,9 @@ The application uses environment variables for database configuration.
 
 Create a local `.env` file in the project root, according to `.env.example`, provided as a template
 
+The host port used by the **Order Service** also configured in the .env file, under the name `SERVER_HOST_PORT`.
+This port is used on the host machine and can be changed if it conflicts with ports used by other local services.
+
 
 ## Running with Docker Compose
 
