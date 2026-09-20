@@ -1,4 +1,4 @@
-package org.spring.divas.order.feature.orderItem;
+package org.spring.divas.order.feature.orderitem;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -13,10 +13,10 @@ import lombok.Setter;
 @NoArgsConstructor
 public class OrderItemRequestDto {
 
-        @NotNull
-        private Long dishId;
+    @NotNull
+    private Long dishId;
 
-        @NotNull
-        @Positive
-        private Integer quantity;
+    @NotNull
+    @Positive
+    private Integer quantity;
 }

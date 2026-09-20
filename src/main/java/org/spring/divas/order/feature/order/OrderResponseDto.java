@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.spring.divas.order.feature.orderItem.OrderItemResponseDto;
+import org.spring.divas.order.feature.orderitem.OrderItemResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;

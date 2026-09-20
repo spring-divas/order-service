@@ -1,4 +1,4 @@
-package org.spring.divas.order.feature.orderItem;
+package org.spring.divas.order.feature.orderitem;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

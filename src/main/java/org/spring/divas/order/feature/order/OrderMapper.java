@@ -1,7 +1,7 @@
 package org.spring.divas.order.feature.order;
 
 import lombok.AllArgsConstructor;
-import org.spring.divas.order.feature.orderItem.OrderItemMapper;
+import org.spring.divas.order.feature.orderitem.OrderItemMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
