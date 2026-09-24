@@ -44,13 +44,89 @@ The `order-db` container should eventually show a **healthy** status.
 ```bash
 docker compose logs -f order-service
 ```
+## Running with Kubernetes
+
+### 1. Configure `order-secret.yaml`
+
+Configure `k8s/order-secret.yaml` using `k8s/order-secret.yaml.example`.
+
+
+### 2. Build the Docker image
+
+Build the `order-service` image:
+
+```shell
+docker build -t order-service:latest .
+```
+
+Docker Desktop Kubernetes can use the locally built image, so no image loading step is required.
+
+### 3. Run `dry-run`
+
+Validate the Kubernetes manifests on the client side:
+
+```shell
+kubectl apply -f k8s/. --dry-run=client
+```
+
+Validate the manifests against the Kubernetes API server:
+
+```shell
+kubectl apply -f k8s/. --dry-run=server
+```
+
+### 4. Apply the Kubernetes manifests
+
+Deploy the database, service, ConfigMap, Secret, and other Kubernetes resources:
+
+```shell
+kubectl apply -f k8s/.
+```
+
+### 5. Check the pods
+
+Check the status of the deployed pods:
+
+```shell
+kubectl get pods
+```
+
+The expected result is two `order-service` replicas and one `order-db` pod in the `Running` state.
+
+### 6. Check the deployment
+
+```shell
+kubectl get deployment order-service
+```
+
+The `READY` value should be `2/2`.
+
+### 7. Port-forward the service
+
+To access the `order-service` from the host machine:
+
+```shell
+kubectl port-forward svc/order-service 8085:8080
+```
+
+The service is then available at:
+
+```text
+http://localhost:8085
+```
+
+For example, the health endpoint can be checked at:
+
+```text
+http://localhost:8085/actuator/health
+```
 
 ## API
 
 The Order Service is available at:
 
 ```text
-http://localhost:8080
+http://localhost:<chosen port>
 ```
 
 ### Create an Order
@@ -100,7 +176,7 @@ Expected response:
 **GET** `/order`
 
 ```text
-GET http://localhost:8080/order
+GET http://localhost:8085/order
 ```
 
 ### Get Order by ID
@@ -108,7 +184,7 @@ GET http://localhost:8080/order
 **GET** `/order/{id}`
 
 ```text
-GET http://localhost:8080/order/{id}
+GET http://localhost:8085/order/{id}
 ```
 
 ### Delete Order
@@ -116,7 +192,7 @@ GET http://localhost:8080/order/{id}
 **DELETE** `/order/{id}`
 
 ```text
-DELETE http://localhost:8080/order/{id}
+DELETE http://localhost:8085/order/{id}
 ```
 
 ## Database
@@ -146,7 +222,7 @@ Send a `POST /order` request and note the returned order ID.
 Send:
 
 ```text
-GET http://localhost:8080/order
+GET http://localhost:8085/order
 ```
 
 Make sure the newly created order is present.
@@ -175,7 +251,7 @@ docker compose ps
 Send:
 
 ```text
-GET http://localhost:8080/order
+GET http://localhost:8085/order
 ```
 
 The order created before the restart should still be present.
