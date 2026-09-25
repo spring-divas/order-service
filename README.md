@@ -121,6 +121,105 @@ For example, the health endpoint can be checked at:
 http://localhost:8085/actuator/health
 ```
 
+## Communication with Payment Service
+
+The `order-service` communicates with the `payment-service` through a Kubernetes `ClusterIP` Service.
+
+The payment service URL is configured using a Kubernetes ConfigMap:
+
+```yaml
+PAYMENT_SERVICE_URL: "http://payment-service:8080"
+```
+
+The `order-service` uses this value to send payment creation requests to the `payment-service`.
+
+When a new order is created, the following flow is performed:
+
+1. `order-service` saves the order to the database.
+2. `order-service` calls `PaymentClient`.
+3. `PaymentClient` sends a `POST /payment` request to:
+
+```text
+http://payment-service:8080/payment
+```
+
+4. Kubernetes DNS resolves `payment-service` to the corresponding `ClusterIP` Service.
+5. The Kubernetes Service forwards the request to one of the available `payment-service` pods.
+6. `payment-service` creates the payment and returns the payment data.
+7. `order-service` receives the response and completes the order creation request.
+
+Both services run with two replicas in Kubernetes. The `payment-service` ClusterIP Service distributes incoming requests between the available payment-service pods.
+
+To verify the service endpoints:
+
+```shell
+kubectl get endpoints payment-service
+```
+
+To verify the configured payment service URL inside an `order-service` pod:
+
+```shell
+kubectl exec deployment/order-service -- printenv PAYMENT_SERVICE_URL
+```
+
+Expected output:
+
+```text
+http://payment-service:8080
+```
+
+The interaction can also be verified through the application logs. When an order is created, `order-service` logs the outgoing payment request, while `payment-service` logs the received payment creation request.
+### Verifying Order → Payment Communication
+
+After starting the port-forward for `order-service`, create a new order:
+
+**POST** `/order`
+
+Test request:
+
+```json
+{
+  "userId": 1,
+  "tableId": 1,
+  "items": [
+    {
+      "dishId": 1,
+      "quantity": 2
+    }
+  ]
+}
+```
+
+The order creation triggers a request from `order-service` to `payment-service`.
+
+To verify that the payment was created, port-forward the `payment-service`:
+
+```shell
+kubectl port-forward svc/payment-service 8084:8080
+```
+
+Then request all payments:
+
+```shell
+curl http://localhost:8084/payment
+```
+
+The response should contain a payment associated with the newly created order:
+
+```json
+[
+  {
+    "id": 1,
+    "orderId": 1,
+    "status": "PENDING",
+    "createdAt": "2026-09-25T..."
+  }
+]
+```
+
+This confirms that creating an order in `order-service` successfully triggers payment creation in `payment-service`.
+
+
 ## API
 
 The Order Service is available at:
