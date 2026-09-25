@@ -1,6 +1,9 @@
 package org.spring.divas.order.feature.order;
 
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spring.divas.order.feature.payment.PaymentClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,14 +15,19 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
+    private final PaymentClient paymentClient;
+
+    private static final Logger log =
+            LoggerFactory.getLogger(OrderServiceImpl.class);
+
 
     @Override
     public OrderResponseDto create(OrderRequestDto dto) {
-
+        log.info("Creating order: {}", dto);
         Order order = orderMapper.toEntity(dto);
-
         Order saved = orderRepository.save(order);
-
+        log.info("Order saved with id={}", saved.getId());
+        paymentClient.createPayment(saved.getId());
         return orderMapper.toResponse(saved);
     }
 

@@ -18,7 +18,7 @@ spec:
       containers:
         - name: order-service
           image: order-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
 
           ports:
             - containerPort: 8080
@@ -42,10 +42,10 @@ spec:
             httpGet:
               path: /actuator/health/liveness
               port: 8080
-            initialDelaySeconds: 10
+            initialDelaySeconds: 20
             periodSeconds: 5
-            timeoutSeconds: 2
-            failureThreshold: 20
+            timeoutSeconds: 3
+            failureThreshold: 30
 
           livenessProbe:
             httpGet:
