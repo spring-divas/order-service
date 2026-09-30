@@ -32,7 +32,8 @@ public class OrderItemServiceImpl implements OrderItemService {
                 .toList();
         List<DishResponseDto> dishes = venueClient.getDishesByIds(ids);
         List<OrderItem> items = orderItemMapper.toEntities(dto, dishes);
-        return items.stream()
+        List<OrderItem> savedItems = orderItemRepository.saveAll(items);
+        return savedItems.stream()
                 .map(orderItemMapper::toResponse)
                 .toList();
     }
