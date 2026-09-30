@@ -79,7 +79,7 @@ public class OrderServiceImpl implements OrderService {
                         new OrderNotFoundException(id)
                 );
         found.setTableId(dto.getTableId());
-        if (found.getStatus() != null)
+        if (dto.getStatus() != null)
             found.setStatus(dto.getStatus());
         Order saved = orderRepository.save(found);
         return orderMapper.toResponse(saved);
