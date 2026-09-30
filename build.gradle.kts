@@ -36,6 +36,7 @@ dependencies {
 	implementation("io.github.resilience4j:resilience4j-spring-boot4:2.4.0")
 
 	testImplementation ("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.wiremock:wiremock-standalone:3.13.2")
 
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 

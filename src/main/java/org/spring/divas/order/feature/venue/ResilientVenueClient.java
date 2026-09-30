@@ -32,6 +32,7 @@ public class ResilientVenueClient {
     }
 
     public List<DishResponseDto> getDishesByIdsFallback(List<Long> ids, Throwable ex) {
+        ex.printStackTrace();
         return ids.stream()
                 .map(id -> new DishResponseDto(id, "Temporally inaccessible", BigDecimal.ZERO))
                 .toList();
