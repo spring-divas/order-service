@@ -22,6 +22,8 @@ public class OrderRequestDto {
     @NotNull
     private Long tableId;
 
+    private OrderStatus status;
+
     @NotEmpty
     private List<@Valid OrderItemRequestDto> items;
 }

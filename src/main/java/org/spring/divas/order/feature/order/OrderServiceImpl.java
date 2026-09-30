@@ -74,17 +74,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponseDto update(Long id, OrderRequestDto dto) {
-
         Order found = orderRepository.findById(id)
                 .orElseThrow(() ->
                         new OrderNotFoundException(id)
                 );
-
-        found.setUserId(dto.getUserId());
         found.setTableId(dto.getTableId());
-
-        // TODO: name + price
-
+        found.setStatus(dto.getStatus());
         Order saved = orderRepository.save(found);
         return orderMapper.toResponse(saved);
     }
