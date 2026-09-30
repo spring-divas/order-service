@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Slf4j
@@ -18,27 +17,16 @@ public class ResilientVenueClient {
     private final VenueClient venueClient;
 
     @Bulkhead(name = "venueClient")
-    @CircuitBreaker(name = "venueClient", fallbackMethod = "getDishesByIdsFallback")
+    @CircuitBreaker(name = "venueClient")
     @Retry(name = "venueClient")
     public List<DishResponseDto> getDishesByIds(List<Long> ids) {
         return venueClient.getDishesByIds(ids);
     }
 
     @Bulkhead(name = "venueClient")
-    @CircuitBreaker(name = "venueClient", fallbackMethod = "getDishByIdFallback")
+    @CircuitBreaker(name = "venueClient")
     @Retry(name = "venueClient")
     public DishResponseDto getDishById(Long id) {
         return venueClient.getDishById(id);
-    }
-
-    public List<DishResponseDto> getDishesByIdsFallback(List<Long> ids, Throwable ex) {
-        ex.printStackTrace();
-        return ids.stream()
-                .map(id -> new DishResponseDto(id, "Temporally inaccessible", BigDecimal.ZERO))
-                .toList();
-    }
-
-    public DishResponseDto getDishByIdFallback(Long id, Throwable ex) {
-        return new DishResponseDto(id, "Temporally inaccessible", BigDecimal.ZERO);
     }
 }

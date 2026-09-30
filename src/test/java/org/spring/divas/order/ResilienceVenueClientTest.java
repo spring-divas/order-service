@@ -53,16 +53,6 @@ public class ResilienceVenueClientTest {
     }
 
     @Test
-    void shouldReturnFallbackWhenServiceFails() {
-        stubFor(post(urlEqualTo("/api/dish/batch"))
-                .willReturn(serverError()));
-        List<DishResponseDto> response = venueClient.getDishesByIds(List.of(1L));
-        assertEquals(1, response.size());
-        assertEquals("Temporally inaccessible", response.getFirst().name());
-        assertEquals(BigDecimal.ZERO, response.getFirst().price());
-    }
-
-    @Test
     void shouldOpenCircuitBreakerOnFailureStorm() {
         stubFor(post(urlEqualTo("/api/dish/batch"))
                 .willReturn(serverError()));
