@@ -2,7 +2,7 @@ package org.spring.divas.order.feature.orderitem;
 
 import lombok.AllArgsConstructor;
 import org.spring.divas.order.feature.venue.DishResponseDto;
-import org.spring.divas.order.feature.venue.VenueClient;
+import org.spring.divas.order.feature.venue.ResilientVenueClient;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,7 +14,7 @@ public class OrderItemServiceImpl implements OrderItemService {
     private final OrderItemRepository orderItemRepository;
     private final OrderItemMapper orderItemMapper;
 
-    private final VenueClient venueClient;
+    private final ResilientVenueClient venueClient;
 
     @Override
     public OrderItemResponseDto create(OrderItemRequestDto dto) {

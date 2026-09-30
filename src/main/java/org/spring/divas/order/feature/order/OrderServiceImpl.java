@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.spring.divas.order.feature.orderitem.OrderItemRequestDto;
 import org.spring.divas.order.feature.payment.PaymentClient;
 import org.spring.divas.order.feature.venue.DishResponseDto;
-import org.spring.divas.order.feature.venue.VenueClient;
+import org.spring.divas.order.feature.venue.ResilientVenueClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +20,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
 
     private final PaymentClient paymentClient;
-    private final VenueClient venueClient;
+    private final ResilientVenueClient venueClient;
 
     private static final Logger log =
             LoggerFactory.getLogger(OrderServiceImpl.class);

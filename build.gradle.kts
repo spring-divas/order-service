@@ -33,7 +33,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-restclient")
 	implementation("org.springframework.boot:spring-boot-starter-aspectj")
 
-	implementation("io.github.resilience4j:resilience4j-retry:2.4.0")
+	implementation("io.github.resilience4j:resilience4j-spring-boot4:2.4.0")
 
 	testImplementation ("org.springframework.boot:spring-boot-starter-test")
 
