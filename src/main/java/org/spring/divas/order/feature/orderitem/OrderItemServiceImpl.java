@@ -18,16 +18,23 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     @Override
     public OrderItemResponseDto create(OrderItemRequestDto dto) {
-
         DishResponseDto response = venueClient.getDishById(dto.getDishId());
-
-        OrderItem orderItem = orderItemMapper.toEntity(dto);
-        orderItem.setName(response.name());
-        orderItem.setPrice(response.price());
-
+        OrderItem orderItem = orderItemMapper.toEntity(dto, response);
         OrderItem saved = orderItemRepository.save(orderItem);
-
         return orderItemMapper.toResponse(saved);
+    }
+
+    @Override
+    public List<OrderItemResponseDto> createAll(List<OrderItemRequestDto> dto) {
+        List<Long> ids = dto.stream()
+                .map(OrderItemRequestDto::getDishId)
+                .distinct()
+                .toList();
+        List<DishResponseDto> dishes = venueClient.getDishesByIds(ids);
+        List<OrderItem> items = orderItemMapper.toEntities(dto, dishes);
+        return items.stream()
+                .map(orderItemMapper::toResponse)
+                .toList();
     }
 
     @Override

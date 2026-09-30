@@ -1,9 +1,12 @@
 package org.spring.divas.order.feature.order;
 
 import lombok.AllArgsConstructor;
+import org.spring.divas.order.feature.orderitem.OrderItem;
 import org.spring.divas.order.feature.orderitem.OrderItemMapper;
+import org.spring.divas.order.feature.venue.DishResponseDto;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -30,7 +33,7 @@ public class OrderMapper {
         );
     }
 
-    public Order toEntity(OrderRequestDto request) {
+    public Order toEntity(OrderRequestDto request, List<DishResponseDto> dishes) {
         if (request == null) {
             return null;
         }
@@ -41,14 +44,9 @@ public class OrderMapper {
                 .status(OrderStatus.NEW)
                 .build();
 
-        order.setItems(
-                request.getItems()
-                        .stream()
-                        .map(orderItemMapper::toEntity)
-                        .toList()
-        );
-
-        order.getItems().forEach(item -> item.setOrder(order));
+        List<OrderItem> items = orderItemMapper.toEntities(request.getItems(), dishes);
+        items.forEach(item -> item.setOrder(order));
+        order.setItems(items);
 
         return order;
     }
