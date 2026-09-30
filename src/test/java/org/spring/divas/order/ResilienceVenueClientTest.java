@@ -56,8 +56,10 @@ public class ResilienceVenueClientTest {
     void shouldOpenCircuitBreakerOnFailureStorm() {
         stubFor(post(urlEqualTo("/api/dish/batch"))
                 .willReturn(serverError()));
-        for (int i = 0; i < 20; i++)
-            venueClient.getDishesByIds(List.of(1L));
+        for (int i = 0; i < 20; i++) {
+            try { venueClient.getDishesByIds(List.of(1L)); }
+            catch (Exception ignored) {}
+        }
         assertEquals(CircuitBreaker.State.OPEN, circuitBreaker.getState());
     }
 }
