@@ -42,8 +42,7 @@ public class ResilienceVenueClientTest {
     @Test
     void shouldReturnDishesWhenServiceIsHealthy() {
         List<DishResponseDto> dish = List.of(
-                new DishResponseDto(1L, "Banosh", new BigDecimal("670.00"))
-        );
+                new DishResponseDto(1L, "Banosh", new BigDecimal("670.00")));
         stubFor(post(urlEqualTo("/api/dish/batch"))
                 .willReturn(okJson(objectMapper.writeValueAsString(dish))));
         List<DishResponseDto> response = venueClient.getDishesByIds(List.of(1L));
