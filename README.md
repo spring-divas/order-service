@@ -118,7 +118,7 @@ http://localhost:8085
 For example, the health endpoint can be checked at:
 
 ```text
-http://localhost:8085/actuator/health
+http://localhost:8085/api/actuator/health
 ```
 
 ## Communication with Payment Service
@@ -173,7 +173,7 @@ The interaction can also be verified through the application logs. When an order
 
 After starting the port-forward for `order-service`, create a new order:
 
-**POST** `/order`
+**POST** `/api/order`
 
 Test request:
 
@@ -230,7 +230,7 @@ http://localhost:<chosen port>
 
 ### Create an Order
 
-**POST** `/order`
+**POST** `/api/order`
 
 Test request:
 
@@ -272,26 +272,26 @@ Expected response:
 (at the moment, the order item's name and price are provided by a temporary stub)
 ### Get All Orders
 
-**GET** `/order`
+**GET** `/api/order`
 
 ```text
-GET http://localhost:8085/order
+GET http://localhost:8085/api/order
 ```
 
 ### Get Order by ID
 
-**GET** `/order/{id}`
+**GET** `/api/order/{id}`
 
 ```text
-GET http://localhost:8085/order/{id}
+GET http://localhost:8085/api/order/{id}
 ```
 
 ### Delete Order
 
-**DELETE** `/order/{id}`
+**DELETE** `/api/order/{id}`
 
 ```text
-DELETE http://localhost:8085/order/{id}
+DELETE http://localhost:8085/api/order/{id}
 ```
 
 ## Database
@@ -314,14 +314,14 @@ The PostgreSQL data should survive container restarts.
 
 ### 1. Create an order
 
-Send a `POST /order` request and note the returned order ID.
+Send a `POST /api/order` request and note the returned order ID.
 
 ### 2. Verify the order exists
 
 Send:
 
 ```text
-GET http://localhost:8085/order
+GET http://localhost:8085/api/order
 ```
 
 Make sure the newly created order is present.
@@ -350,7 +350,7 @@ docker compose ps
 Send:
 
 ```text
-GET http://localhost:8085/order
+GET http://localhost:8085/api/order
 ```
 
 The order created before the restart should still be present.
