@@ -6,6 +6,8 @@ public interface OrderItemService {
 
     OrderItemResponseDto create(OrderItemRequestDto dto);
 
+    List<OrderItemResponseDto> createAll(List<OrderItemRequestDto> dto);
+
     List<OrderItemResponseDto> getAll();
 
     OrderItemResponseDto getById(Long id);

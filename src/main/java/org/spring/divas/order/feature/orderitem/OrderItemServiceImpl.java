@@ -1,9 +1,10 @@
 package org.spring.divas.order.feature.orderitem;
 
 import lombok.AllArgsConstructor;
+import org.spring.divas.order.feature.venue.DishResponseDto;
+import org.spring.divas.order.feature.venue.ResilientVenueClient;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -13,18 +14,28 @@ public class OrderItemServiceImpl implements OrderItemService {
     private final OrderItemRepository orderItemRepository;
     private final OrderItemMapper orderItemMapper;
 
+    private final ResilientVenueClient venueClient;
+
     @Override
     public OrderItemResponseDto create(OrderItemRequestDto dto) {
-
-        OrderItem orderItem = orderItemMapper.toEntity(dto);
-
-        // Temporary stub until integration with venue-service.
-        orderItem.setName("Temporary dish");
-        orderItem.setPrice(BigDecimal.ZERO);
-
+        DishResponseDto response = venueClient.getDishById(dto.getDishId());
+        OrderItem orderItem = orderItemMapper.toEntity(dto, response);
         OrderItem saved = orderItemRepository.save(orderItem);
-
         return orderItemMapper.toResponse(saved);
+    }
+
+    @Override
+    public List<OrderItemResponseDto> createAll(List<OrderItemRequestDto> dto) {
+        List<Long> ids = dto.stream()
+                .map(OrderItemRequestDto::getDishId)
+                .distinct()
+                .toList();
+        List<DishResponseDto> dishes = venueClient.getDishesByIds(ids);
+        List<OrderItem> items = orderItemMapper.toEntities(dto, dishes);
+        List<OrderItem> savedItems = orderItemRepository.saveAll(items);
+        return savedItems.stream()
+                .map(orderItemMapper::toResponse)
+                .toList();
     }
 
     @Override

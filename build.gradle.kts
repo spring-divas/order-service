@@ -4,6 +4,7 @@ plugins {
 	id("org.springframework.boot") version "4.1.1"
 	id("io.spring.dependency-management") version "1.1.7"
 }
+val springCloudVersion by extra("2025.1.3")
 
 group = "org.spring.divas"
 version = "0.0.1-SNAPSHOT"
@@ -29,7 +30,13 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation ("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-restclient")
+	implementation("org.springframework.boot:spring-boot-starter-aspectj")
+
+	implementation("io.github.resilience4j:resilience4j-spring-boot4:2.4.0")
+
 	testImplementation ("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.wiremock:wiremock-standalone:3.13.2")
 
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 

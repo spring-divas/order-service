@@ -1,0 +1,18 @@
+resilience4j:
+  circuitbreaker:
+    instances:
+      venueClient:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+  retry:
+    instances:
+      venueClient:
+        max-attempts: 2
+        wait-duration: 100ms
+        enable-exponential-backoff: true
+  bulkhead:
+    instances:
+      venueClient:
+        max-concurrent-calls: 5
+        max-wait-duration: 20ms
