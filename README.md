@@ -294,6 +294,25 @@ GET http://localhost:8085/api/order/{id}
 DELETE http://localhost:8085/api/order/{id}
 ```
 
+### Check if a User Has Ordered a Dish
+
+**GET** `/api/order/exists`
+
+```text
+GET http://localhost:8085/api/order/exists?userId={userId}&dishId={dishId}
+```
+The endpoint returns:
+```text
+true
+```
+if the user has a completed (READY) order containing the specified dish.
+
+Otherwise, it returns:
+```text
+false
+```
+The endpoint is intended to be used by the **review-service** to verify that a user is eligible to review a dish.
+
 ## Database
 
 The Order Service connects to PostgreSQL using the Docker service name:

@@ -10,6 +10,7 @@ import org.spring.divas.order.feature.venue.ResilientVenueClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -32,6 +33,13 @@ public class OrderServiceImpl implements OrderService {
                 .map(OrderItemRequestDto::getDishId)
                 .toList();
         List<DishResponseDto> dishes = venueClient.getDishesByIds(ids);
+        /*List<DishResponseDto> dishes = dto.getItems().stream()
+                .map(item -> new DishResponseDto(
+                        item.getDishId(),
+                        "Test dish",
+                        BigDecimal.valueOf(100)
+                ))
+                .toList();*/
         Order order = orderMapper.toEntity(dto, dishes);
         Order saved = orderRepository.save(order);
         log.info("Order saved with id={}", saved.getId());
