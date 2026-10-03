@@ -302,7 +302,7 @@ DELETE http://localhost:8085/api/order/{id}
 **GET** `/api/order/exists/dish`
 
 ```text
-GET http://localhost:8085/api/order/exists?userId={userId}&dishId={dishId}
+GET http://localhost:8085/api/order/exists/dish?userId={userId}&dishId={dishId}
 ```
 The endpoint returns:
 ```text
@@ -321,7 +321,7 @@ The endpoint is intended to be used by the **review-service** to verify that a u
 **GET** `/api/order/exists/venue`
 
 ```text
-GET http://localhost:8085/api/order/exists?userId={userId}&venueId={dishId}
+GET http://localhost:8085/api/order/exists/venue?userId={userId}&venueId={dishId}
 ```
 The endpoint returns:
 ```text
