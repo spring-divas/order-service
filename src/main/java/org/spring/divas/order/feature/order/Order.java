@@ -26,6 +26,10 @@ public class Order {
     private Long userId;
 
     @NotNull
+    @Column(name = "venue_id", nullable = false)
+    private Long venueId;
+
+    @NotNull
     @Column(name = "table_id", nullable = false)
     private Long tableId;
 

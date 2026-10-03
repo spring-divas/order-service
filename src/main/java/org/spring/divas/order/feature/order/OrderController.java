@@ -43,9 +43,17 @@ public class OrderController {
         return orderService.update(id, dto);
     }
 
-    @GetMapping("/exists")
-    public boolean hasUserOrderedDish(@RequestParam Long userId, @RequestParam Long dishId) {
-
+    @GetMapping("/exists/dish")
+    public boolean hasUserOrderedDish(
+            @RequestParam Long userId, @RequestParam Long dishId
+    ) {
         return orderService.hasUserOrderedDish(userId, dishId);
+    }
+
+    @GetMapping("/exists/venue")
+    public boolean hasUserBeenToVenue(
+            @RequestParam Long userId, @RequestParam Long venueId
+    ) {
+        return orderService.hasUserBeenToVenue(userId, venueId);
     }
 }

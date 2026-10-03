@@ -1,5 +1,6 @@
 package org.spring.divas.order.feature.order;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,8 @@ public class OrderResponseDto {
     private Long id;
 
     private Long userId;
+
+    private Long venueId;
 
     private Long tableId;
 
