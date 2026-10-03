@@ -23,6 +23,7 @@ public class OrderMapper {
         return new OrderResponseDto(
                 order.getId(),
                 order.getUserId(),
+                order.getVenueId(),
                 order.getTableId(),
                 order.getStatus(),
                 order.getCreatedAt(),
@@ -40,6 +41,7 @@ public class OrderMapper {
 
         Order order = Order.builder()
                 .userId(request.getUserId())
+                .venueId(request.getVenueId())
                 .tableId(request.getTableId())
                 .status(OrderStatus.NEW)
                 .build();

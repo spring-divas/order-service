@@ -20,6 +20,9 @@ public class OrderRequestDto {
     private Long userId;
 
     @NotNull
+    private Long venueId;
+
+    @NotNull
     private Long tableId;
 
     private OrderStatus status;
