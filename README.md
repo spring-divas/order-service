@@ -180,6 +180,7 @@ Test request:
 ```json
 {
   "userId": 1,
+  "venueId": 1,
   "tableId": 1,
   "items": [
     {
@@ -237,6 +238,7 @@ Test request:
 ```json
 {
   "userId": 1,
+  "venueId": 1,
   "tableId": 1,
   "items": [
     {
@@ -254,6 +256,7 @@ Expected response:
 {
   "id": 1,
   "userId": 1,
+  "venueId": 1,
   "tableId": 1,
   "status": "NEW",
   "createdAt": "2026-09-18T20:06:29",
@@ -296,7 +299,7 @@ DELETE http://localhost:8085/api/order/{id}
 
 ### Check if a User Has Ordered a Dish
 
-**GET** `/api/order/exists`
+**GET** `/api/order/exists/dish`
 
 ```text
 GET http://localhost:8085/api/order/exists?userId={userId}&dishId={dishId}
@@ -312,6 +315,25 @@ Otherwise, it returns:
 false
 ```
 The endpoint is intended to be used by the **review-service** to verify that a user is eligible to review a dish.
+
+### Check if a User Has Been to a Venue
+
+**GET** `/api/order/exists/venue`
+
+```text
+GET http://localhost:8085/api/order/exists?userId={userId}&venueId={dishId}
+```
+The endpoint returns:
+```text
+true
+```
+if the user has an order connected the specified venue.
+
+Otherwise, it returns:
+```text
+false
+```
+The endpoint is intended to be used by the **review-service** to verify that a user is eligible to review a venue.
 
 ## Database
 
