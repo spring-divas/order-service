@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spring.divas.order.feature.orderitem.OrderItemRequestDto;
-import org.spring.divas.order.feature.payment.PaymentClient;
+import org.spring.divas.order.feature.payment.ResilientPaymentClient;
 import org.spring.divas.order.feature.venue.DishResponseDto;
 import org.spring.divas.order.feature.venue.ResilientVenueClient;
 import org.springframework.stereotype.Service;
@@ -19,11 +19,10 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
 
-    private final PaymentClient paymentClient;
+    private final ResilientPaymentClient paymentClient;
     private final ResilientVenueClient venueClient;
 
-    private static final Logger log =
-            LoggerFactory.getLogger(OrderServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
 
     @Override
@@ -36,7 +35,8 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderMapper.toEntity(dto, dishes);
         Order saved = orderRepository.save(order);
         log.info("Order saved with id={}", saved.getId());
-        paymentClient.createPayment(saved.getId());
+        String idempotencyKey = "order-" + saved.getId();
+        paymentClient.createPayment(saved.getId(), idempotencyKey);
         return orderMapper.toResponse(saved);
     }
 
@@ -54,10 +54,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public OrderResponseDto getById(Long id) {
 
-        Order found = orderRepository.findById(id)
-                .orElseThrow(() ->
-                        new OrderNotFoundException(id)
-                );
+        Order found = orderRepository.findById(id).orElseThrow(() ->
+                new OrderNotFoundException(id));
 
         return orderMapper.toResponse(found);
     }
@@ -74,14 +72,18 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponseDto update(Long id, OrderRequestDto dto) {
-        Order found = orderRepository.findById(id)
-                .orElseThrow(() ->
-                        new OrderNotFoundException(id)
-                );
+        Order found = orderRepository.findById(id).orElseThrow(() ->
+                new OrderNotFoundException(id));
         found.setTableId(dto.getTableId());
-        if (dto.getStatus() != null)
+        if (dto.getStatus() != null) {
             found.setStatus(dto.getStatus());
+        }
         Order saved = orderRepository.save(found);
         return orderMapper.toResponse(saved);
+    }
+
+    @Override
+    public boolean hasUserOrderedDish(Long userId, Long dishId) {
+        return orderRepository.existsByUserIdAndDishId(userId, dishId, OrderStatus.READY);
     }
 }

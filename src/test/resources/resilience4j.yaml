@@ -1,18 +1,37 @@
 resilience4j:
   circuitbreaker:
+    circuit-breaker-aspect-order: 1
     instances:
       venueClient:
         sliding-window-size: 10
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
+
+      paymentClient:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+
   retry:
+    retry-aspect-order: 2
     instances:
       venueClient:
         max-attempts: 2
         wait-duration: 100ms
         enable-exponential-backoff: true
+
+      paymentClient:
+        max-attempts: 3
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        enable-randomized-wait: true
+
   bulkhead:
     instances:
       venueClient:
         max-concurrent-calls: 5
+        max-wait-duration: 20ms
+
+      paymentClient:
+        max-concurrent-calls: 20
         max-wait-duration: 20ms

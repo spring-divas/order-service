@@ -55,9 +55,9 @@ public class OrderItemMapper {
                         Function.identity(),
                         (existing, _) -> existing));
         return dto.stream().map(itemDto -> {
-                    DishResponseDto dish = Optional.ofNullable(dishesMap.get(itemDto.getDishId()))
-                            .orElseThrow(() -> new EntityNotFoundException("Dish not found."));
-                    return toEntity(itemDto, dish);
+            DishResponseDto dish = Optional.ofNullable(dishesMap.get(itemDto.getDishId()))
+                    .orElseThrow(() -> new EntityNotFoundException("Dish not found."));
+            return toEntity(itemDto, dish);
         }).toList();
     }
 

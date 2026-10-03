@@ -1,5 +1,6 @@
 package org.spring.divas.order.config;
 
+import org.spring.divas.order.feature.payment.PaymentClient;
 import org.spring.divas.order.feature.venue.VenueClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +19,9 @@ public class ClientConfig {
     @Value("${venue.service.url}")
     private String venueServiceUrl;
 
+    @Value("${payment.service.url}")
+    private String paymentServiceUrl;
+
     @Bean
     public VenueClient venueClient(RestClient.Builder builder) {
         HttpClient httpClient = HttpClient.newBuilder()
@@ -28,10 +32,35 @@ public class ClientConfig {
         RestClient restClient = builder
                 .baseUrl(venueServiceUrl)
                 .requestFactory(requestFactory)
+                .requestInterceptor(new CorrelationIdInterceptor())
                 .build();
         HttpServiceProxyFactory factory = HttpServiceProxyFactory
                 .builderFor(RestClientAdapter.create(restClient))
                 .build();
         return factory.createClient(VenueClient.class);
+    }
+
+    @Bean
+    public PaymentClient paymentClient(RestClient.Builder builder) {
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(2))
+                .build();
+
+        JdkClientHttpRequestFactory requestFactory =
+                new JdkClientHttpRequestFactory(httpClient);
+
+        requestFactory.setReadTimeout(Duration.ofSeconds(3));
+
+        RestClient restClient = builder
+                .baseUrl(paymentServiceUrl)
+                .requestFactory(requestFactory)
+                .requestInterceptor(new CorrelationIdInterceptor())
+                .build();
+
+        HttpServiceProxyFactory factory = HttpServiceProxyFactory
+                .builderFor(RestClientAdapter.create(restClient))
+                .build();
+
+        return factory.createClient(PaymentClient.class);
     }
 }

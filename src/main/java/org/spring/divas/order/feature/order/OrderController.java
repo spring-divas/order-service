@@ -16,9 +16,7 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public OrderResponseDto create(
-            @Valid @RequestBody OrderRequestDto dto
-    ) {
+    public OrderResponseDto create(@Valid @RequestBody OrderRequestDto dto) {
         return orderService.create(dto);
     }
 
@@ -27,21 +25,27 @@ public class OrderController {
         return orderService.getAll();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public OrderResponseDto getById(@PathVariable Long id) {
         return orderService.getById(id);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public void delete(@PathVariable Long id) {
         orderService.delete(id);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public OrderResponseDto update(
             @PathVariable Long id,
             @Valid @RequestBody OrderRequestDto dto
     ) {
         return orderService.update(id, dto);
+    }
+
+    @GetMapping("/exists")
+    public boolean hasUserOrderedDish(@RequestParam Long userId, @RequestParam Long dishId) {
+
+        return orderService.hasUserOrderedDish(userId, dishId);
     }
 }
