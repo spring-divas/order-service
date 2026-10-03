@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record DishResponseDto(
-    Long id,
-    String name,
-    BigDecimal price
+        Long id,
+        String name,
+        BigDecimal price
 ) {}

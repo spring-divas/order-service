@@ -125,6 +125,7 @@ class OrderCreationIntegrationTest {
                                 .content("""
                                                 {
                                                    "tableId": 1,
+                                                   "venueId": 1,
                                                    "items": [
                                                      {
                                                        "dishId": 1,
@@ -226,6 +227,7 @@ class OrderCreationIntegrationTest {
                                 .content("""
                                                     {
                                                        "tableId": 1,
+                                                       "venueId": 1,
                                                        "items": [
                                                          {
                                                            "dishId": 1,

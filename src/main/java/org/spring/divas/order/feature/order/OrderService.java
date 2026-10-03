@@ -15,4 +15,6 @@ public interface OrderService {
     OrderResponseDto update(Long id, OrderRequestDto dto);
 
     boolean hasUserOrderedDish(Long userId, Long dishId);
+
+    boolean hasUserBeenToVenue(Long userId, Long venueId);
 }

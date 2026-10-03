@@ -5,7 +5,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    @Query("""
+    @Query(
+            """
                 SELECT CASE WHEN COUNT(o) > 0 THEN true ELSE false END
                 FROM Order o
                 JOIN o.items i
@@ -18,4 +19,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("dishId") Long dishId,
             @Param("status") OrderStatus status
     );
+
+    boolean existsByUserIdAndVenueId(Long userId, Long venueId);
 }

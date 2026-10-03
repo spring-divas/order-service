@@ -10,7 +10,6 @@ import org.spring.divas.order.feature.venue.ResilientVenueClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -93,5 +92,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean hasUserOrderedDish(Long userId, Long dishId) {
         return orderRepository.existsByUserIdAndDishId(userId, dishId, OrderStatus.READY);
+    }
+
+    @Override
+    public boolean hasUserBeenToVenue(Long userId, Long venueId) {
+        return orderRepository.existsByUserIdAndVenueId(userId, venueId);
     }
 }
