@@ -13,4 +13,6 @@ public interface OrderService {
     void delete(Long id);
 
     OrderResponseDto update(Long id, OrderRequestDto dto);
+
+    boolean hasUserOrderedDish(Long userId, Long dishId);
 }
