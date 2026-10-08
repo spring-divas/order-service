@@ -1,7 +1,10 @@
 package org.spring.divas.order.feature.dish;
 
 import lombok.AllArgsConstructor;
+import org.springframework.kafka.annotation.BackOff;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.retrytopic.DltStrategy;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +14,10 @@ public class DishEventListener {
     private final DishEventMapper dishEventMapper;
     private final DishService dishService;
 
+    @RetryableTopic(
+            backOff = @BackOff(delay = 1000, multiplier = 2.0),
+            dltStrategy = DltStrategy.FAIL_ON_ERROR
+    )
     @KafkaListener(topics = "dish-events", groupId = "dish-creation-group")
     public void handleDishCreated(
             @Payload DishCreatedEvent event
@@ -19,6 +26,10 @@ public class DishEventListener {
         dishService.create(dto);
     }
 
+    @RetryableTopic(
+            backOff = @BackOff(delay = 1000, multiplier = 2.0),
+            dltStrategy = DltStrategy.FAIL_ON_ERROR
+    )
     @KafkaListener(topics = "dish-events", groupId = "dish-update-group")
     public void handleDishUpdate(
             @Payload DishUpdatedEvent event
