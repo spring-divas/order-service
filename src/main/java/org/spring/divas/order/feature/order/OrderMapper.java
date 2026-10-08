@@ -3,7 +3,7 @@ package org.spring.divas.order.feature.order;
 import lombok.AllArgsConstructor;
 import org.spring.divas.order.feature.orderitem.OrderItem;
 import org.spring.divas.order.feature.orderitem.OrderItemMapper;
-import org.spring.divas.order.feature.venue.DishResponseDto;
+import org.spring.divas.order.feature.dish.DishResponseDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

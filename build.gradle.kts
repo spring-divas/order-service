@@ -34,11 +34,13 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-aspectj")
 
 	implementation("io.github.resilience4j:resilience4j-spring-boot4:2.4.0")
+	implementation("org.springframework.boot:spring-boot-starter-kafka")
 
 	testImplementation ("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.wiremock:wiremock-standalone:3.13.2")
 
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	testImplementation("org.springframework.kafka:spring-kafka-test")
 
 	runtimeOnly("org.postgresql:postgresql")
 
