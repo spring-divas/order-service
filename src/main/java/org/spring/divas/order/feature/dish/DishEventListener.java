@@ -37,9 +37,10 @@ public class DishEventListener {
     @KafkaListener(topics = "dish-events", groupId = "dish-events-group")
     public void handleDishEvent(
             @Payload String payload,
-            @Header("eventId") UUID eventId,
+            @Header("eventId") String eventIdStr,
             @Header("eventType") String eventType
     ) {
+        UUID eventId = UUID.fromString(eventIdStr);
         if (processedEventRepository.existsByEventId(eventId)) {
             log.info("Duplicate event detected, skipping: {}", eventId);
             return;
