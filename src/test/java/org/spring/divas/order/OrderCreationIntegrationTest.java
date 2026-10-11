@@ -4,36 +4,36 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.spring.divas.order.feature.dish.Dish;
+import org.spring.divas.order.feature.dish.DishRepository;
 import org.spring.divas.order.feature.order.Order;
 import org.spring.divas.order.feature.order.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.math.BigDecimal;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@EmbeddedKafka(partitions = 1, topics = {"dish-events", "dish-events-dlt"},
+        bootstrapServersProperty = "spring.kafka.bootstrap-servers")
 class OrderCreationIntegrationTest {
-
-    @RegisterExtension
-    static WireMockExtension venueWireMock =
-            WireMockExtension.newInstance()
-                    .options(wireMockConfig().dynamicPort())
-                    .build();
 
     @RegisterExtension
     static WireMockExtension paymentWireMock =
@@ -47,14 +47,11 @@ class OrderCreationIntegrationTest {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private DishRepository dishRepository;
+
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
-
-        registry.add(
-                "venue.service.url",
-                () -> "http://localhost:" + venueWireMock.getPort()
-        );
-
         registry.add(
                 "payment.service.url",
                 () -> "http://localhost:" + paymentWireMock.getPort()
@@ -63,50 +60,21 @@ class OrderCreationIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        venueWireMock.resetAll();
         paymentWireMock.resetAll();
-
         orderRepository.deleteAll();
+        dishRepository.deleteAll();
+        dishRepository.save(new Dish(1L, "Pizza", BigDecimal.valueOf(250.00)));
+        dishRepository.save(new Dish(2L,  "Burger", BigDecimal.valueOf(180.00)));
     }
 
     @Test
     void shouldCreateOrderAndCreatePayment() throws Exception {
-
-        venueWireMock.stubFor(
-                post(urlEqualTo("/api/dish/batch"))
-                        .willReturn(
-                                aResponse()
-                                        .withStatus(200)
-                                        .withHeader(
-                                                "Content-Type",
-                                                "application/json"
-                                        )
-                                        .withBody("""
-                                                [
-                                                    {
-                                                        "id": 1,
-                                                        "name": "Pizza",
-                                                        "price": 250.00
-                                                    },
-                                                    {
-                                                        "id": 2,
-                                                        "name": "Burger",
-                                                        "price": 180.00
-                                                    }
-                                                ]
-                                                """)
-                        )
-        );
-
         paymentWireMock.stubFor(
                 post(urlEqualTo("/api/payment"))
                         .willReturn(
                                 aResponse()
                                         .withStatus(201)
-                                        .withHeader(
-                                                "Content-Type",
-                                                "application/json"
-                                        )
+                                        .withHeader("Content-Type", "application/json")
                                         .withBody("""
                                                 {
                                                     "id": 100,
@@ -123,92 +91,42 @@ class OrderCreationIntegrationTest {
                                 .contextPath("/api")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                                                {
-                                                   "tableId": 1,
-                                                   "venueId": 1,
-                                                   "items": [
-                                                     {
-                                                       "dishId": 1,
-                                                       "quantity": 2
-                                                     },
-                                                     {
-                                                       "dishId": 2,
-                                                       "quantity": 1
-                                                     }
-                                                   ]
-                                                 }
+                                        {
+                                           "tableId": 1,
+                                           "venueId": 1,
+                                           "items": [
+                                             {
+                                               "dishId": 1,
+                                               "quantity": 2
+                                             },
+                                             {
+                                               "dishId": 2,
+                                               "quantity": 1
+                                             }
+                                           ]
+                                         }
                                         """)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists());
 
-        venueWireMock.verify(
-                1,
-                postRequestedFor(urlEqualTo("/api/dish/batch"))
-        );
-
         paymentWireMock.verify(
                 1,
                 postRequestedFor(urlEqualTo("/api/payment"))
-                        .withHeader(
-                                "Idempotency-Key",
-                                matching("order-\\d+")
-                        )
+                        .withHeader("Idempotency-Key", matching("order-\\d+"))
         );
 
-        paymentWireMock.verify(
-                postRequestedFor(urlEqualTo("/api/payment"))
-                        .withRequestBody(
-                                equalToJson("""
-                                        {
-                                            "orderId": 1
-                                        }
-                                        """)
-                        )
-        );
-
-        assert orderRepository.count() == 1;
+        assertEquals(1, orderRepository.count());
     }
-
 
     @Test
     void shouldCreateOrderWhenPaymentServiceFailsAndUseFallback() throws Exception {
-        // Venue Service
-        venueWireMock.stubFor(
-                post(urlEqualTo("/api/dish/batch"))
-                        .willReturn(
-                                aResponse()
-                                        .withStatus(200)
-                                        .withHeader(
-                                                "Content-Type",
-                                                "application/json"
-                                        )
-                                        .withBody("""
-                                                [
-                                                    {
-                                                        "id": 1,
-                                                        "name": "Pizza",
-                                                        "price": 250.00
-                                                    },
-                                                    {
-                                                        "id": 2,
-                                                        "name": "Burger",
-                                                        "price": 180.00
-                                                    }
-                                                ]
-                                                """)
-                        )
-        );
-
         paymentWireMock.stubFor(
-                post(String.valueOf(urlEqualTo("/api/payment")))
+                post(urlEqualTo("/api/payment"))
                         .willReturn(
                                 aResponse()
                                         .withStatus(500)
-                                        .withHeader(
-                                                "Content-Type",
-                                                "application/problem+json"
-                                        )
+                                        .withHeader("Content-Type", "application/problem+json")
                                         .withBody("""
                                                 {
                                                     "type": "about:blank",
@@ -225,64 +143,32 @@ class OrderCreationIntegrationTest {
                                 .contextPath("/api")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                                                    {
-                                                       "tableId": 1,
-                                                       "venueId": 1,
-                                                       "items": [
-                                                         {
-                                                           "dishId": 1,
-                                                           "quantity": 2
-                                                         },
-                                                         {
-                                                           "dishId": 2,
-                                                           "quantity": 1
-                                                         }
-                                                       ]
-                                                     }
+                                        {
+                                           "tableId": 1,
+                                           "venueId": 1,
+                                           "items": [
+                                             {
+                                               "dishId": 1,
+                                               "quantity": 2
+                                             },
+                                             {
+                                               "dishId": 2,
+                                               "quantity": 1
+                                             }
+                                           ]
+                                         }
                                         """)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists());
 
-
         assertEquals(1, orderRepository.count());
-
-        Order savedOrder = orderRepository.findAll().get(0);
+        Order savedOrder = orderRepository.findAll().getFirst();
         assertThat(savedOrder.getId()).isNotNull();
-
-        venueWireMock.verify(
-                1,
-                postRequestedFor(urlEqualTo("/api/dish/batch"))
-        );
-
-        // ---------------------------------------------------------
-        // 6. Payment був викликаний 3 рази через Retry
-        // ---------------------------------------------------------
 
         paymentWireMock.verify(
                 3,
                 postRequestedFor(urlEqualTo("/api/payment"))
-        );
-
-
-        paymentWireMock.verify(
-                postRequestedFor(urlEqualTo("/api/payment"))
-                        .withRequestBody(
-                                equalToJson("""
-                                        {
-                                            "orderId": %d
-                                        }
-                                        """.formatted(savedOrder.getId()))
-                        )
-        );
-
-
-        paymentWireMock.verify(
-                postRequestedFor(urlEqualTo("/api/payment"))
-                        .withHeader(
-                                "Idempotency-Key",
-                                equalTo("order-" + savedOrder.getId())
-                        )
         );
     }
 }

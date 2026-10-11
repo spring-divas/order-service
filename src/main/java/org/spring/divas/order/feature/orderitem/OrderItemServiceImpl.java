@@ -1,8 +1,8 @@
 package org.spring.divas.order.feature.orderitem;
 
 import lombok.AllArgsConstructor;
-import org.spring.divas.order.feature.venue.DishResponseDto;
-import org.spring.divas.order.feature.venue.ResilientVenueClient;
+import org.spring.divas.order.feature.dish.DishService;
+import org.spring.divas.order.feature.dish.DishResponseDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,11 +14,11 @@ public class OrderItemServiceImpl implements OrderItemService {
     private final OrderItemRepository orderItemRepository;
     private final OrderItemMapper orderItemMapper;
 
-    private final ResilientVenueClient venueClient;
+    private final DishService dishService;
 
     @Override
     public OrderItemResponseDto create(OrderItemRequestDto dto) {
-        DishResponseDto response = venueClient.getDishById(dto.getDishId());
+        DishResponseDto response = dishService.getById(dto.getDishId());
         OrderItem orderItem = orderItemMapper.toEntity(dto, response);
         OrderItem saved = orderItemRepository.save(orderItem);
         return orderItemMapper.toResponse(saved);
@@ -30,7 +30,7 @@ public class OrderItemServiceImpl implements OrderItemService {
                 .map(OrderItemRequestDto::getDishId)
                 .distinct()
                 .toList();
-        List<DishResponseDto> dishes = venueClient.getDishesByIds(ids);
+        List<DishResponseDto> dishes = dishService.getAllByIds(ids);
         List<OrderItem> items = orderItemMapper.toEntities(dto, dishes);
         List<OrderItem> savedItems = orderItemRepository.saveAll(items);
         return savedItems.stream()

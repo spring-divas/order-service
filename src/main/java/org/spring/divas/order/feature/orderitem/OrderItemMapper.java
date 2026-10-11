@@ -2,7 +2,7 @@ package org.spring.divas.order.feature.orderitem;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
-import org.spring.divas.order.feature.venue.DishResponseDto;
+import org.spring.divas.order.feature.dish.DishResponseDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -36,12 +36,11 @@ public class OrderItemMapper {
         if (request == null) {
             return null;
         }
-
         return OrderItem.builder()
                 .dishId(request.getDishId())
                 .quantity(request.getQuantity())
-                .name(dish.name())
-                .price(dish.price())
+                .name(dish.getName())
+                .price(dish.getPrice())
                 .build();
     }
 
@@ -51,7 +50,7 @@ public class OrderItemMapper {
     ) {
         Map<Long, DishResponseDto> dishesMap = dishes.stream()
                 .collect(Collectors.toMap(
-                        DishResponseDto::id,
+                        DishResponseDto::getId,
                         Function.identity(),
                         (existing, _) -> existing));
         return dto.stream().map(itemDto -> {

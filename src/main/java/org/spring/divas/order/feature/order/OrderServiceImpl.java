@@ -3,9 +3,10 @@ package org.spring.divas.order.feature.order;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spring.divas.order.feature.dish.DishService;
 import org.spring.divas.order.feature.orderitem.OrderItemRequestDto;
 import org.spring.divas.order.feature.payment.ResilientPaymentClient;
-import org.spring.divas.order.feature.venue.DishResponseDto;
+import org.spring.divas.order.feature.dish.DishResponseDto;
 import org.spring.divas.order.feature.venue.ResilientVenueClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,11 +17,12 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
+    private final DishService dishService;
+
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
 
     private final ResilientPaymentClient paymentClient;
-    private final ResilientVenueClient venueClient;
 
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
@@ -31,14 +33,7 @@ public class OrderServiceImpl implements OrderService {
         List<Long> ids = dto.getItems().stream()
                 .map(OrderItemRequestDto::getDishId)
                 .toList();
-        List<DishResponseDto> dishes = venueClient.getDishesByIds(ids);
-        /*List<DishResponseDto> dishes = dto.getItems().stream()
-                .map(item -> new DishResponseDto(
-                        item.getDishId(),
-                        "Test dish",
-                        BigDecimal.valueOf(100)
-                ))
-                .toList();*/
+        List<DishResponseDto> dishes = dishService.getAllByIds(ids);
         Order order = orderMapper.toEntity(dto, dishes);
         Order saved = orderRepository.save(order);
         log.info("Order saved with id={}", saved.getId());
