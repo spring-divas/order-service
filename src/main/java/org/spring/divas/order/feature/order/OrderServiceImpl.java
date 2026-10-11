@@ -5,11 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spring.divas.order.feature.dish.DishService;
 import org.spring.divas.order.feature.orderitem.OrderItemRequestDto;
-import org.spring.divas.order.feature.payment.ResilientPaymentClient;
 import org.spring.divas.order.feature.dish.DishResponseDto;
-import org.spring.divas.order.feature.venue.ResilientVenueClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.spring.divas.order.feature.outbox.OutboxRepository;
 
 import java.util.List;
 
@@ -22,12 +21,14 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
 
-    private final ResilientPaymentClient paymentClient;
+    private final OutboxRepository outboxRepository;
+    private final OrderEventMapper orderEventMapper;
 
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
 
     @Override
+    @Transactional
     public OrderResponseDto create(OrderRequestDto dto) {
         log.info("Creating order: {}", dto);
         List<Long> ids = dto.getItems().stream()
@@ -37,8 +38,8 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderMapper.toEntity(dto, dishes);
         Order saved = orderRepository.save(order);
         log.info("Order saved with id={}", saved.getId());
-        String idempotencyKey = "order-" + saved.getId();
-        paymentClient.createPayment(saved.getId(), idempotencyKey);
+        //String idempotencyKey = "order-" + saved.getId();
+        outboxRepository.save(orderEventMapper.toOutboxEvent(saved));
         return orderMapper.toResponse(saved);
     }
 

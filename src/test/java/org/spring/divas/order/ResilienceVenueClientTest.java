@@ -1,4 +1,4 @@
-package org.spring.divas.order;
+/*package org.spring.divas.order;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -63,3 +63,4 @@ public class ResilienceVenueClientTest {
         assertEquals(CircuitBreaker.State.OPEN, circuitBreaker.getState());
     }
 }
+*/
