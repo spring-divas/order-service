@@ -4,6 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query(
             """
@@ -21,4 +23,5 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     );
 
     boolean existsByUserIdAndVenueId(Long userId, Long venueId);
+    long countByStatusNotIn(List<OrderStatus> statuses);
 }

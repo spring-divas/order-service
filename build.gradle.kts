@@ -43,6 +43,7 @@ dependencies {
 	testImplementation("org.springframework.kafka:spring-kafka-test")
 
 	runtimeOnly("org.postgresql:postgresql")
+	runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")

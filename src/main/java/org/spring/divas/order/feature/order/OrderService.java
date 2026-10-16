@@ -17,4 +17,6 @@ public interface OrderService {
     boolean hasUserOrderedDish(Long userId, Long dishId);
 
     boolean hasUserBeenToVenue(Long userId, Long venueId);
+
+    OrderResponseDto cancel(Long id);
 }

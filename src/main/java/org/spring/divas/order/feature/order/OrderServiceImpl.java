@@ -9,8 +9,10 @@ import org.spring.divas.order.feature.dish.DishResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.spring.divas.order.feature.outbox.OutboxRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.List;
+
 
 @Service
 @AllArgsConstructor
@@ -25,7 +27,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderEventMapper orderEventMapper;
 
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
-
+    private final OrderMetricsService orderMetricsService;
 
     @Override
     @Transactional
@@ -93,5 +95,40 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean hasUserBeenToVenue(Long userId, Long venueId) {
         return orderRepository.existsByUserIdAndVenueId(userId, venueId);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponseDto cancel(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException(id));
+
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            return orderMapper.toResponse(order);
+        }
+
+        if (order.getStatus() == OrderStatus.READY) {
+            throw new IllegalStateException(
+                    "You cannot cancel a READY order"
+            );
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        Order saved = orderRepository.save(order);
+
+        orderMetricsService.incrementCancelledOrders();
+
+        return orderMapper.toResponse(saved);
+    }
+
+
+    @Scheduled(fixedDelay = 10000)
+    @Transactional(readOnly = true)
+    public void refreshNotReadyOrdersMetric() {
+        long count = orderRepository.countByStatusNotIn(
+                List.of(OrderStatus.READY, OrderStatus.CANCELLED)
+        );
+
+        orderMetricsService.setNotReadyOrders(Math.toIntExact(count));
     }
 }

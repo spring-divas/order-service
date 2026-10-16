@@ -56,4 +56,9 @@ public class OrderController {
     ) {
         return orderService.hasUserBeenToVenue(userId, venueId);
     }
+
+    @PatchMapping("/{id:\\d+}/cancel")
+    public OrderResponseDto cancel(@PathVariable Long id) {
+        return orderService.cancel(id);
+    }
 }

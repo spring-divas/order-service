@@ -297,6 +297,25 @@ GET http://localhost:8085/api/order/{id}
 DELETE http://localhost:8085/api/order/{id}
 ```
 
+### Order Cancellation
+
+The Order Service supports cancelling orders through the following endpoint:
+
+**PATCH** `/api/order/{id}/cancel`
+
+```text
+PATCH http://localhost:8085/api/order/{id}/cancel
+```
+
+**Behavior:**
+- Orders that are not yet ready can be cancelled.
+- Orders with the `READY` status cannot be cancelled.
+- Cancelling an already cancelled order does not change its state or increment the cancellation counter again.
+- If the order does not exist, an `OrderNotFoundException` is thrown.
+
+When an order is successfully cancelled, its status is changed to `CANCELLED`.
+
+
 ### Check if a User Has Ordered a Dish
 
 **GET** `/api/order/exists/dish`
@@ -397,6 +416,20 @@ GET http://localhost:8085/api/order
 The order created before the restart should still be present.
 
 This confirms that PostgreSQL data is persisted in the Docker volume.
+
+## Order Custom Metrics
+
+The service exposes custom metrics using Micrometer.
+
+| Metric | Type | Description |
+|---|---|---|
+| `orders.cancelled` | Counter | Total number of successfully cancelled orders |
+| `orders.not.ready` | Gauge | Current number of orders that are neither `READY` nor `CANCELLED` |
+
+The Gauge is refreshed periodically every 10 seconds by querying the order repository.
+
+The cancellation Counter is incremented after the database transaction commits successfully, using a transactional event listener.
+
 
 
 ## Stopping the Application
