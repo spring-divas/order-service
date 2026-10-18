@@ -1,5 +1,6 @@
 package org.spring.divas.order.feature.order;
 
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +9,8 @@ import org.spring.divas.order.feature.orderitem.OrderItemRequestDto;
 import org.spring.divas.order.feature.dish.DishResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.spring.divas.order.feature.outbox.OutboxRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -42,7 +45,25 @@ public class OrderServiceImpl implements OrderService {
         log.info("Order saved with id={}", saved.getId());
         //String idempotencyKey = "order-" + saved.getId();
         outboxRepository.save(orderEventMapper.toOutboxEvent(saved));
+        recordTotalPrice(saved);
         return orderMapper.toResponse(saved);
+    }
+
+    private void recordTotalPrice(Order order) {
+        try {
+            BigDecimal sum = order.getItems().stream()
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    orderMetricsService.recordOrderPrice(sum);
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Failed to record order price metric", e);
+        }
     }
 
     @Override
