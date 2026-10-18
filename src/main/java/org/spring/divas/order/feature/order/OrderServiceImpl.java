@@ -58,7 +58,11 @@ public class OrderServiceImpl implements OrderService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    orderMetricsService.recordOrderPrice(sum);
+                    try {
+                        orderMetricsService.recordOrderPrice(sum);
+                    } catch (Exception e) {
+                        log.warn("Failed to record order price metric", e);
+                    }
                 }
             });
         } catch (Exception e) {
