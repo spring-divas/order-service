@@ -2,11 +2,14 @@ package org.spring.divas.order.feature.order;
 
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spring.divas.order.feature.dish.DishService;
 import org.spring.divas.order.feature.orderitem.OrderItemRequestDto;
 import org.spring.divas.order.feature.dish.DishResponseDto;
+import org.spring.divas.order.feature.user.ResilientUserClient;
+import org.spring.divas.order.feature.user.UserResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -16,7 +19,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.List;
 
-
+@Slf4j
 @Service
 @AllArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -29,45 +32,29 @@ public class OrderServiceImpl implements OrderService {
     private final OutboxRepository outboxRepository;
     private final OrderEventMapper orderEventMapper;
 
-    private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
     private final OrderMetricsService orderMetricsService;
+
+    private final ResilientUserClient userClient;
 
     @Override
     @Transactional
     public OrderResponseDto create(OrderRequestDto dto) {
         log.info("Creating order: {}", dto);
+
         List<Long> ids = dto.getItems().stream()
                 .map(OrderItemRequestDto::getDishId)
                 .toList();
         List<DishResponseDto> dishes = dishService.getAllByIds(ids);
-        Order order = orderMapper.toEntity(dto, dishes);
+        UserResponseDto user = userClient.findById(dto.getUserId());
+
+        Order order = orderMapper.toEntity(dto, dishes, user);
         Order saved = orderRepository.save(order);
+
         log.info("Order saved with id={}", saved.getId());
-        //String idempotencyKey = "order-" + saved.getId();
+
         outboxRepository.save(orderEventMapper.toOutboxEvent(saved));
         recordTotalPrice(saved);
         return orderMapper.toResponse(saved);
-    }
-
-    private void recordTotalPrice(Order order) {
-        try {
-            BigDecimal sum = order.getItems().stream()
-                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    try {
-                        orderMetricsService.recordOrderPrice(sum);
-                    } catch (Exception e) {
-                        log.warn("Failed to record order price metric", e);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            log.warn("Failed to record order price metric", e);
-        }
     }
 
     @Override
@@ -155,5 +142,26 @@ public class OrderServiceImpl implements OrderService {
         );
 
         orderMetricsService.setNotReadyOrders(Math.toIntExact(count));
+    }
+
+    private void recordTotalPrice(Order order) {
+        try {
+            BigDecimal sum = order.getItems().stream()
+                    .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        orderMetricsService.recordOrderPrice(sum);
+                    } catch (Exception e) {
+                        log.warn("Failed to record order price metric", e);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Failed to record order price metric", e);
+        }
     }
 }

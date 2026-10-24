@@ -9,6 +9,8 @@ import org.spring.divas.order.feature.outbox.OutboxEvent;
 import org.spring.divas.order.feature.outbox.OutboxRepository;
 import org.spring.divas.order.feature.outbox.OutboxStatusService;
 import org.spring.divas.order.feature.outbox.PollingOutboxScheduler;
+import org.spring.divas.order.feature.user.ResilientUserClient;
+import org.spring.divas.order.feature.user.UserResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -59,6 +61,9 @@ class OrderOutboxKafkaIntegrationTest {
     @MockitoBean
     private OrderMapper orderMapper;
 
+    @MockitoBean
+    private ResilientUserClient userClient;
+
     @MockitoSpyBean
     private OutboxRepository outboxRepositorySpy;
 
@@ -78,9 +83,19 @@ class OrderOutboxKafkaIntegrationTest {
         when(dishService.getAllByIds(any()))
                 .thenReturn(List.of());
 
-        when(orderMapper.toEntity(eq(request), any()))
+        when(userClient.findById(any()))
+                .thenReturn(UserResponseDto.builder()
+                        .firstName("First Name")
+                        .lastName("Last Name")
+                        .email("Email")
+                        .build());
+
+        when(orderMapper.toEntity(eq(request), any(), any()))
                 .thenReturn(Order.builder()
                         .userId(10L)
+                        .firstName("First name")
+                        .lastName("Last name")
+                        .email("Email")
                         .venueId(20L)
                         .tableId(30L)
                         .status(OrderStatus.NEW)
