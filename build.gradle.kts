@@ -33,8 +33,11 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-restclient")
 	implementation("org.springframework.boot:spring-boot-starter-aspectj")
 
+	implementation("net.logstash.logback:logstash-logback-encoder:9.0")
+
 	implementation("io.github.resilience4j:resilience4j-spring-boot4:2.4.0")
 	implementation("org.springframework.boot:spring-boot-starter-kafka")
+	implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
 
 	testImplementation ("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.wiremock:wiremock-standalone:3.13.2")
@@ -48,7 +51,6 @@ dependencies {
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testImplementation("com.h2database:h2")
