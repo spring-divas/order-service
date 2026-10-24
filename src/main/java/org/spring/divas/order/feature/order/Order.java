@@ -25,6 +25,15 @@ public class Order {
     @Column(name = "user_id")
     private Long userId;
 
+    @Column(name = "first_name", nullable = false, length = 100)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false, length = 100)
+    private String lastName;
+
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
+
     @NotNull
     @Column(name = "venue_id", nullable = false)
     private Long venueId;

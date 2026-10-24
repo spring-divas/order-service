@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.spring.divas.order.feature.orderitem.OrderItem;
 import org.spring.divas.order.feature.orderitem.OrderItemMapper;
 import org.spring.divas.order.feature.dish.DishResponseDto;
+import org.spring.divas.order.feature.user.UserResponseDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -23,6 +24,9 @@ public class OrderMapper {
         return new OrderResponseDto(
                 order.getId(),
                 order.getUserId(),
+                order.getFirstName(),
+                order.getLastName(),
+                order.getEmail(),
                 order.getVenueId(),
                 order.getTableId(),
                 order.getStatus(),
@@ -34,13 +38,18 @@ public class OrderMapper {
         );
     }
 
-    public Order toEntity(OrderRequestDto request, List<DishResponseDto> dishes) {
+    public Order toEntity(
+            OrderRequestDto request, List<DishResponseDto> dishes, UserResponseDto user
+    ) {
         if (request == null) {
             return null;
         }
 
         Order order = Order.builder()
                 .userId(request.getUserId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
                 .venueId(request.getVenueId())
                 .tableId(request.getTableId())
                 .status(OrderStatus.NEW)
