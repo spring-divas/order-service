@@ -7,4 +7,4 @@ public record OrderCreatedEvent(
         UUID eventId,
         Long orderId,
         Instant occurredAt
-) { }
+) {}

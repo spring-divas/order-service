@@ -48,6 +48,10 @@ public class DishEventListener {
         switch (eventType) {
             case "DishCreated" -> handleDishCreated(payload);
             case "DishUpdated" -> handleDishUpdated(payload);
+            default -> {
+                log.info("Undefined event detected, skipping {}", eventId);
+                return;
+            }
         }
         processedEventRepository.save(ProcessedEvent.builder()
                 .eventId(eventId)
