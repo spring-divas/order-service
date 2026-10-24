@@ -1,6 +1,8 @@
 package org.spring.divas.order.feature.order;
 
 import java.math.BigDecimal;
+
+import io.micrometer.observation.annotation.Observed;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    @Observed(name = "order.creation", contextualName = "create-order")
     public OrderResponseDto create(OrderRequestDto dto) {
         log.info("Creating order: {}", dto);
         List<Long> ids = dto.getItems().stream()
