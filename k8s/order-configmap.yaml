@@ -4,3 +4,4 @@ metadata:
   name: order-config
 data:
   APP_ENVIRONMENT: "dev"
+  OTLP_TRACES_ENDPOINT: "http://otel-collector:4318/v1/traces"
