@@ -5,3 +5,7 @@ metadata:
 data:
   APP_ENVIRONMENT: "dev"
   OTLP_TRACES_ENDPOINT: "http://otel-collector:4318/v1/traces"
+  USER_SERVICE_URL: "http://user-service:8080"
+  VENUE_SERVICE_URL: "http://venue-service:8080"
+  PAYMENT_SERVICE_URL: "http://payment-service:8080"
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
