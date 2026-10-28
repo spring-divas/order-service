@@ -11,7 +11,6 @@ import io.micrometer.tracing.propagation.Propagator;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -59,17 +58,17 @@ public class PollingOutboxScheduler {
                         event.getAggregateId(),
                         event.getPayload()
                 ).get(10, TimeUnit.SECONDS);
+
+                outboxStatusService.markPublished(event.getId());
+
+                log.info(
+                        "Published outbox event: eventId={}, orderId={}",
+                        event.getEventId(),
+                        event.getAggregateId()
+                );
             } finally {
                 publishSpan.end();
             }
-
-            outboxStatusService.markPublished(event.getId());
-
-            log.info(
-                    "Published outbox event: eventId={}, orderId={}",
-                    event.getEventId(),
-                    event.getAggregateId()
-            );
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
