@@ -17,6 +17,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -66,6 +68,9 @@ class OrderOutboxKafkaIntegrationTest {
 
     @MockitoSpyBean
     private OutboxRepository outboxRepositorySpy;
+
+    @Autowired
+    private Tracer tracer;
 
 
     @BeforeEach
@@ -201,6 +206,61 @@ class OrderOutboxKafkaIntegrationTest {
         assertThat(occurredAt)
                 .isBetween(beforeMapping, afterMapping);
     }
+
+    @Test
+    void shouldPersistTraceContextInOutboxEvent() {
+        OrderRequestDto request = validRequest();
+
+        when(dishService.getAllByIds(any()))
+                .thenReturn(List.of());
+
+        when(userClient.findById(any()))
+                .thenReturn(UserResponseDto.builder()
+                        .firstName("First Name")
+                        .lastName("Last Name")
+                        .email("test@example.com")
+                        .build());
+
+        when(orderMapper.toEntity(eq(request), any(), any()))
+                .thenReturn(Order.builder()
+                        .userId(10L)
+                        .firstName("First Name")
+                        .lastName("Last Name")
+                        .email("test@example.com")
+                        .venueId(20L)
+                        .tableId(30L)
+                        .status(OrderStatus.NEW)
+                        .items(new ArrayList<>())
+                        .build());
+
+        when(orderMapper.toResponse(any(Order.class)))
+                .thenReturn(new OrderResponseDto());
+
+        Span parentSpan = tracer.nextSpan()
+                .name("test-parent")
+                .start();
+
+        try (Tracer.SpanInScope ignored = tracer.withSpan(parentSpan)) {
+            orderService.create(request);
+        } finally {
+            parentSpan.end();
+        }
+
+        List<OutboxEvent> events = outboxRepository
+                .findTop100ByPublishedAtIsNullOrderByCreatedAtAscIdAsc();
+
+        assertThat(events).hasSize(1);
+
+        OutboxEvent event = events.getFirst();
+        assertThat(event.getTraceparent()).isNotBlank();
+
+        String[] traceParts = event.getTraceparent().split("-");
+        assertThat(traceParts).hasSize(4);
+        assertThat(traceParts[0]).isEqualTo("00");
+        assertThat(traceParts[1]).isEqualTo(parentSpan.context().traceId());
+        assertThat(traceParts[2]).isNotBlank();
+    }
+
 
     private OrderRequestDto validRequest() {
         OrderItemRequestDto item = mock(OrderItemRequestDto.class);
