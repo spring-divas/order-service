@@ -18,6 +18,13 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.spring.divas.order.feature.outbox.OutboxRepository;
 import org.springframework.scheduling.annotation.Scheduled;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.propagation.Propagator;
+import org.spring.divas.order.feature.outbox.OutboxEvent;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import java.util.List;
 
@@ -38,6 +45,9 @@ public class OrderServiceImpl implements OrderService {
 
     private final ResilientUserClient userClient;
 
+    private final Tracer tracer;
+    private final Propagator propagator;
+
     @Override
     @Transactional
     @Observed(name = "order.creation", contextualName = "create-order")
@@ -55,7 +65,21 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("Order saved with id={}", saved.getId());
 
-        outboxRepository.save(orderEventMapper.toOutboxEvent(saved));
+        OutboxEvent outboxEvent = orderEventMapper.toOutboxEvent(saved);
+
+        Span currentSpan = tracer.currentSpan();
+
+        if (currentSpan != null) {
+            Map<String, String> traceHeaders = new HashMap<>();
+
+            propagator.inject(currentSpan.context(), traceHeaders, Map::put);
+
+            outboxEvent.setTraceparent(traceHeaders.get("traceparent"));
+            outboxEvent.setTracestate(traceHeaders.get("tracestate"));
+        }
+
+        outboxRepository.save(outboxEvent);
+
         recordTotalPrice(saved);
         return orderMapper.toResponse(saved);
     }

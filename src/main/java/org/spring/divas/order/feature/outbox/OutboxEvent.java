@@ -47,6 +47,12 @@ public class OutboxEvent {
     @Column(name = "last_error", length = 2000)
     private String lastError;
 
+    @Column(name = "traceparent", length = 1000)
+    private String traceparent;
+
+    @Column(name = "tracestate", length = 1000)
+    private String tracestate;
+
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
