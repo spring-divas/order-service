@@ -24,9 +24,25 @@ spec:
       labels:
         app: order-db
     spec:
+      automountServiceAccountToken: false
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 70
+        runAsGroup: 70
+        fsGroup: 70
+
       containers:
         - name: postgres
           image: postgres:18-alpine
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
           env:
             - name: POSTGRES_DB
               valueFrom:
@@ -58,10 +74,22 @@ spec:
             - name: order-db-data
               mountPath: /var/lib/postgresql
 
+            - name: tmp
+              mountPath: /tmp
+
+            - name: postgres-socket
+              mountPath: /var/run/postgresql
+
       volumes:
         - name: order-db-data
           persistentVolumeClaim:
             claimName: order-db-data
+
+        - name: tmp
+          emptyDir: {}
+
+        - name: postgres-socket
+          emptyDir: {}
 
 ---
 apiVersion: v1

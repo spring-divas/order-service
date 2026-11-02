@@ -15,10 +15,25 @@ spec:
         app: order-service
 
     spec:
+      automountServiceAccountToken: false
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+
       containers:
         - name: order-service
           image: order-service:latest
           imagePullPolicy: Never
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
 
           ports:
             - containerPort: 8080
@@ -60,6 +75,14 @@ spec:
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 10
+
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+
+      volumes:
+        - name: tmp
+          emptyDir: {}
 
 ---
 apiVersion: v1
