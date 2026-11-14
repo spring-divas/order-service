@@ -1,8 +1,11 @@
+import com.google.protobuf.gradle.id
+
 plugins {
 	id("java")
 	id("checkstyle")
 	id("org.springframework.boot") version "4.1.1"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("com.google.protobuf") version "0.9.6"
 }
 val springCloudVersion by extra("2025.1.3")
 
@@ -29,9 +32,16 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation ("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-restclient")
 	implementation("org.springframework.boot:spring-boot-starter-aspectj")
+
+	// gRPC Client dependencies (Spring Boot 4.1 native gRPC)
+	implementation("org.springframework.boot:spring-boot-starter-grpc-client")
+	implementation("io.grpc:grpc-protobuf")
+	implementation("io.grpc:grpc-stub")
+	implementation("com.google.protobuf:protobuf-java:4.36.2")
+	compileOnly("jakarta.annotation:jakarta.annotation-api")
 
 	implementation("net.logstash.logback:logstash-logback-encoder:9.0")
 
@@ -39,7 +49,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-kafka")
 	implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
 
-	testImplementation ("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-grpc-client-test")
 	testImplementation("org.wiremock:wiremock-standalone:3.13.2")
 
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -54,6 +65,23 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testImplementation("com.h2database:h2")
+}
+
+protobuf {
+	protoc {
+		artifact = "com.google.protobuf:protoc:4.36.2"
+	}
+	plugins {
+		id("grpc") {
+			artifact = "io.grpc:protoc-gen-grpc-java:1.84.1"
+		}
+	}
+	generateProtoTasks {
+		all().forEach { task ->
+			task.plugins {
+			}
+		}
+	}
 }
 
 tasks.named<Test>("test") {

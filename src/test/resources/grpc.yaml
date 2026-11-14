@@ -1,0 +1,9 @@
+spring:
+  grpc:
+    client:
+      channel:
+        payment:
+          target: ${PAYMENT_GRPC_TARGET:static://localhost:9090}
+          default:
+            load-balancing-policy: round_robin
+            deadline: 5s

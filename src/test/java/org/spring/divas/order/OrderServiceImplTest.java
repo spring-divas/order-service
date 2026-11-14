@@ -16,6 +16,7 @@ import org.spring.divas.order.feature.order.Order;
 import org.spring.divas.order.feature.order.OrderResponseDto;
 import org.spring.divas.order.feature.order.OrderStatus;
 import org.spring.divas.order.feature.order.OrderNotFoundException;
+import org.spring.divas.order.feature.payment.PaymentGrpcClient;
 
 import org.spring.divas.order.feature.outbox.OutboxRepository;
 
@@ -45,6 +46,9 @@ class OrderServiceImplTest {
 
     @Mock
     private OrderMetricsService orderMetricsService;
+
+    @Mock
+    private PaymentGrpcClient paymentGrpcClient;
 
     @InjectMocks
     private OrderServiceImpl orderService;
