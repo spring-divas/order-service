@@ -19,4 +19,8 @@ public interface OrderService {
     boolean hasUserBeenToVenue(Long userId, Long venueId);
 
     OrderResponseDto cancel(Long id);
+
+    OrderResponseDto cancel(Long id, String reason);
+
+    OrderResponseDto pay(Long id, boolean simulateFailure);
 }

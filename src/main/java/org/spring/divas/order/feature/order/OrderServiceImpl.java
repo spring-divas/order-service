@@ -22,6 +22,7 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.propagation.Propagator;
 import org.spring.divas.order.feature.outbox.OutboxEvent;
+import org.spring.divas.order.feature.payment.PaymentGrpcClient;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +45,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMetricsService orderMetricsService;
 
     private final ResilientUserClient userClient;
+    private final PaymentGrpcClient paymentGrpcClient;
 
     private final Tracer tracer;
     private final Propagator propagator;
@@ -139,6 +141,12 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponseDto cancel(Long id) {
+        return cancel(id, "User requested cancellation");
+    }
+
+    @Override
+    @Transactional
+    public OrderResponseDto cancel(Long id, String reason) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException(id));
 
@@ -157,7 +165,32 @@ public class OrderServiceImpl implements OrderService {
 
         orderMetricsService.incrementCancelledOrders();
 
+        if (paymentGrpcClient != null) {
+            try {
+                paymentGrpcClient.sendOrderCancellation(id, 0L, reason).join();
+            } catch (Exception e) {
+                log.warn("Failed to notify payment of cancellation: {}", e.getMessage());
+            }
+        }
+
         return orderMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponseDto pay(Long id, boolean simulateFailure) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException(id));
+
+        try {
+            paymentGrpcClient.processRealtimePaymentWithRetry(order, simulateFailure).join();
+        } catch (Exception e) {
+            log.warn("Realtime payment completed with error: {}", e.getMessage());
+        }
+
+        Order updated = orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException(id));
+        return orderMapper.toResponse(updated);
     }
 
 

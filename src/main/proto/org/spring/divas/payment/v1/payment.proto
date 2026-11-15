@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package org.spring.divas.payment.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option java_package = "org.spring.divas.payment.v1";
+option java_multiple_files = true;
+
+/**
+ * gRPC сервіс для двонаправленої (Bidirectional Streaming) взаємодії
+ * між Order-Service та Payment-Service: платіж у реальному часі.
+ */
+service PaymentService {
+  // Двонаправлений потік обробки платежу в реальному часі (кроки 1-7)
+  rpc ProcessPaymentStream(stream PaymentStreamRequest) returns (stream PaymentStreamResponse);
+}
+
+// Фінансово точна сума за рекомендаціями Google API Design Guidelines
+message Money {
+  string currency_code = 1; // Наприклад, "USD" або "UAH"
+  int64 units = 2;          // Ціла частина суми
+  int32 nanos = 3;          // Дробова частина (10^-9)
+}
+
+// Статуси платежу (UNSPECIFIED завжди = 0 за правилами proto3)
+enum PaymentStatus {
+  PAYMENT_STATUS_UNSPECIFIED = 0;
+  PAYMENT_STATUS_PENDING = 1;
+  PAYMENT_STATUS_PAID = 2;
+  PAYMENT_STATUS_FAILED = 3;
+  PAYMENT_STATUS_CANCELLED = 4;
+}
+
+// Позиція замовлення у платіжній інформації
+message OrderPaymentItem {
+  int64 dish_id = 1;
+  int32 quantity = 2;
+  Money price = 3;
+}
+
+// Крок 1: Order надсилає інформацію про замовлення
+message OrderPaymentInfo {
+  int64 order_id = 1;
+  int64 user_id = 2;
+  Money amount = 3;
+  repeated OrderPaymentItem items = 4;
+  string customer_email = 5;
+  string idempotency_key = 6;
+  bool simulate_failure = 7;
+  bool simulate_unavailable = 8; // Для симуляції UNAVAILABLE у тестах retries
+}
+
+// Крок 4: Order підтверджує отримання статусу PENDING
+message PaymentConfirmation {
+  int64 payment_id = 1;
+  int64 order_id = 2;
+  bool confirmed = 3;
+}
+
+// Крок 7: Order надсилає до Payment оновлення статусу, якщо замовлення CANCELLED
+message OrderCancellation {
+  int64 order_id = 1;
+  int64 payment_id = 2;
+  string reason = 3;
+}
+
+// Повідомлення від Order до Payment (Клієнт -> Сервер)
+message PaymentStreamRequest {
+  oneof request_payload {
+    OrderPaymentInfo order_info = 1;       // Крок 1
+    PaymentConfirmation confirmation = 2;  // Крок 4
+    OrderCancellation cancellation = 3;    // Крок 7
+  }
+}
+
+// Повідомлення від Payment до Order (Сервер -> Клієнт)
+message PaymentStreamResponse {
+  int64 payment_id = 1;
+  int64 order_id = 2;
+  PaymentStatus status = 3;
+  string message = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  int32 attempt_number = 6;
+  bool requires_confirmation = 7;
+  optional string failure_reason = 8;
+
+  // Демонстрація reserved відповідно до Лекції 9
+  reserved 10;
+  reserved "cvv_verification_token";
+}
