@@ -7,4 +7,5 @@ public interface DishService {
     List<DishResponseDto> getAllByIds(List<Long> ids);
     DishResponseDto create(DishRequestDto dto);
     DishResponseDto update(DishRequestDto dto);
+    DishResponseDto upsert(DishRequestDto dto);
 }

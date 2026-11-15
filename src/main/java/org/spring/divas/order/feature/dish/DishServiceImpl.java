@@ -2,6 +2,7 @@ package org.spring.divas.order.feature.dish;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -42,5 +43,15 @@ public class DishServiceImpl implements DishService {
         dish.setPrice(dto.getPrice());
         Dish saved = dishRepository.save(dish);
         return dishResponseMapper.toDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public DishResponseDto upsert(DishRequestDto dto) {
+        Dish dish = dishRepository.findById(dto.getDishId())
+                .orElseGet(() -> dishRequestMapper.toDish(dto));
+        dish.setName(dto.getName());
+        dish.setPrice(dto.getPrice());
+        return dishResponseMapper.toDto(dishRepository.save(dish));
     }
 }

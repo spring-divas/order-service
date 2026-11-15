@@ -39,6 +39,8 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      DISH_SYNC_TRANSPORT: ${DISH_SYNC_TRANSPORT}
+      VENUE_GRPC_TARGET: ${VENUE_GRPC_TARGET}
 
     depends_on:
       order-db:

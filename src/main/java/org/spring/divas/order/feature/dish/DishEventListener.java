@@ -13,6 +13,7 @@ import org.springframework.kafka.retrytopic.DltStrategy;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
@@ -20,6 +21,11 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.UUID;
 
 @Component
+@ConditionalOnProperty(
+        name = "dish.sync.transport",
+        havingValue = "kafka",
+        matchIfMissing = true
+)
 @AllArgsConstructor
 public class DishEventListener {
     private final DishEventMapper dishEventMapper;
