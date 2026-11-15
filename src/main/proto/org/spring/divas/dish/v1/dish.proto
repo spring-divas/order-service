@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package org.spring.divas.dish.v1;
+
+option java_multiple_files = true;
+option java_package = "org.spring.divas.dish.v1";
+
+service DishStreamService {
+  rpc SubscribeDishes(SubscriptionRequest) returns (stream DishChange);
+}
+
+message SubscriptionRequest {
+}
+
+message DishChange {
+  int64 id = 1;
+  string name = 2;
+  DecimalValue price = 3;
+}
+
+message DecimalValue {
+  uint32 scale = 1;
+  uint32 precision = 2;
+  bytes value = 3;
+}
