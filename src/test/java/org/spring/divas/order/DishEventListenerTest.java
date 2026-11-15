@@ -3,7 +3,7 @@ package org.spring.divas.order;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.spring.divas.order.feature.dish.DishCreatedEvent;
+import org.spring.divas.order.feature.dish.kafka.DishCreatedEvent;
 import org.spring.divas.order.feature.dish.DishRequestDto;
 import org.spring.divas.order.feature.dish.DishService;
 import org.spring.divas.order.feature.processed.ProcessedEventRepository;

@@ -1,8 +1,9 @@
-package org.spring.divas.order.feature.dish;
+package org.spring.divas.order.feature.dish.kafka;
 
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spring.divas.order.feature.dish.DishService;
 import org.spring.divas.order.feature.processed.ProcessedEvent;
 import org.spring.divas.order.feature.processed.ProcessedEventRepository;
 import org.springframework.kafka.annotation.BackOff;

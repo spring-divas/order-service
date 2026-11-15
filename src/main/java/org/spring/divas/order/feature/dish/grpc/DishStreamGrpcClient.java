@@ -1,4 +1,4 @@
-package org.spring.divas.order.feature.dish;
+package org.spring.divas.order.feature.dish.grpc;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.spring.divas.dish.v1.DishChange;
 import org.spring.divas.dish.v1.DishStreamServiceGrpc;
 import org.spring.divas.dish.v1.SubscriptionRequest;
+import org.spring.divas.order.feature.dish.DishService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;

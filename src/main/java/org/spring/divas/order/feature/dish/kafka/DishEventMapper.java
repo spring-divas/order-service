@@ -1,5 +1,6 @@
-package org.spring.divas.order.feature.dish;
+package org.spring.divas.order.feature.dish.kafka;
 
+import org.spring.divas.order.feature.dish.DishRequestDto;
 import org.springframework.stereotype.Component;
 
 @Component

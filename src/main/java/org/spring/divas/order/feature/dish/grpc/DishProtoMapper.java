@@ -1,6 +1,7 @@
-package org.spring.divas.order.feature.dish;
+package org.spring.divas.order.feature.dish.grpc;
 
 import org.spring.divas.dish.v1.DishChange;
+import org.spring.divas.order.feature.dish.DishRequestDto;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
