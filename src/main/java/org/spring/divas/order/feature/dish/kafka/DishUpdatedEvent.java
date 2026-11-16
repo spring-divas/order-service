@@ -1,4 +1,4 @@
-package org.spring.divas.order.feature.dish;
+package org.spring.divas.order.feature.dish.kafka;
 
 import java.math.BigDecimal;
 import java.util.UUID;
