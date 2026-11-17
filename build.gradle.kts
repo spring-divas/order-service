@@ -67,6 +67,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testImplementation("com.h2database:h2")
+	testImplementation("au.com.dius.pact.provider:junit5:4.7.5")
 }
 
 protobuf {
@@ -88,4 +89,9 @@ protobuf {
 
 tasks.named<Test>("test") {
 	useJUnitPlatform()
+	inputs.dir(project.file("../common/contract/pact"))
+	systemProperty(
+		"pactfolder.path",
+		System.getProperty("pactfolder.path", project.file("../common/contract/pact").absolutePath)
+	)
 }

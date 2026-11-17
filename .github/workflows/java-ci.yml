@@ -11,7 +11,7 @@ on:
       - "gradlew"
       - "gradlew.bat"
       - "checks.xml"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/java-ci.yml"
   push:
     branches:
       - main
@@ -24,7 +24,7 @@ on:
       - "gradlew"
       - "gradlew.bat"
       - "checks.xml"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/java-ci.yml"
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -34,6 +34,8 @@ jobs:
   ci:
     name: Order Service
     uses: spring-divas/common/.github/workflows/java-ci.yml@main
+    with:
+      fetch_pact_contracts: true
     permissions:
       contents: write
       checks: write
