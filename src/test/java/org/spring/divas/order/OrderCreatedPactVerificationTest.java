@@ -16,7 +16,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.util.List;
 
 @Provider("order-service")
-@PactFolder("../common/contract/pact")
+@PactFolder("${pactfolder.path}")
 class OrderCreatedPactVerificationTest {
 
     private final OrderEventMapper orderEventMapper = new OrderEventMapper(new JsonMapper());
