@@ -89,9 +89,13 @@ protobuf {
 
 tasks.named<Test>("test") {
 	useJUnitPlatform()
-	inputs.dir(project.file("../common/contract/pact"))
+	val pactFolder = System.getProperty(
+		"pactfolder.path",
+		project.file("../common/contract/pact").absolutePath
+	)
+	inputs.dir(pactFolder)
 	systemProperty(
 		"pactfolder.path",
-		System.getProperty("pactfolder.path", project.file("../common/contract/pact").absolutePath)
+		pactFolder
 	)
 }
