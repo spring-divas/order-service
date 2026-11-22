@@ -54,6 +54,8 @@ dependencies {
 	testImplementation("org.wiremock:wiremock-standalone:3.13.2")
 
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation("de.codecentric:chaos-monkey-spring-boot:4.0.0")
+
 	testImplementation("org.springframework.kafka:spring-kafka-test")
 
 	runtimeOnly("org.postgresql:postgresql")
