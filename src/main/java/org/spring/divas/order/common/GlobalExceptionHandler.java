@@ -1,10 +1,13 @@
 package org.spring.divas.order.common;
 
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import jakarta.validation.ConstraintViolationException;
 import org.spring.divas.order.feature.order.OrderNotFoundException;
 import org.spring.divas.order.feature.orderitem.OrderItemNotFoundException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -45,6 +48,17 @@ public class GlobalExceptionHandler {
         problem.setTitle("Validation Error");
         problem.setProperty("timestamp", Instant.now());
         return problem;
+    }
+
+    @ExceptionHandler(RequestNotPermitted.class)
+    public ResponseEntity<ProblemDetail> handleRateLimitExceeded(RequestNotPermitted exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.TOO_MANY_REQUESTS, "Rate limit exceeded. Please try again later.");
+        problem.setTitle("Too Many Requests");
+        problem.setProperty("timestamp", Instant.now());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, "1")
+                .body(problem);
     }
 
     @ExceptionHandler(Exception.class)
