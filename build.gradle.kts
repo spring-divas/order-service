@@ -68,6 +68,7 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testImplementation("com.h2database:h2")
 	testImplementation("au.com.dius.pact.provider:junit5:4.7.5")
+	testImplementation("au.com.dius.pact.consumer:junit5:4.7.5")
 }
 
 protobuf {
@@ -97,5 +98,9 @@ tasks.named<Test>("test") {
 	systemProperty(
 		"pactfolder.path",
 		pactFolder
+	)
+	systemProperty(
+		"pact.rootDir",
+		System.getProperty("pact.rootDir", project.file("../common/contract/pact").absolutePath)
 	)
 }
