@@ -53,16 +53,16 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     @Observed(name = "order.creation", contextualName = "create-order")
-    public OrderResponseDto create(OrderRequestDto dto) {
+    public OrderResponseDto create(OrderRequestDto dto, Long userId) {
         log.info("Creating order: {}", dto);
 
         List<Long> ids = dto.getItems().stream()
                 .map(OrderItemRequestDto::getDishId)
                 .toList();
         List<DishResponseDto> dishes = dishService.getAllByIds(ids);
-        UserResponseDto user = userClient.findById(dto.getUserId());
+        UserResponseDto user = userClient.findById(userId);
 
-        Order order = orderMapper.toEntity(dto, dishes, user);
+        Order order = orderMapper.toEntity(dto, dishes, user, userId);
         Order saved = orderRepository.save(order);
 
         log.info("Order saved with id={}", saved.getId());
@@ -94,6 +94,12 @@ public class OrderServiceImpl implements OrderService {
                 .stream()
                 .map(orderMapper::toResponse)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderResponseDto> getAllByUserId(Long userId) {
+        return orderRepository.findByUserId(userId).stream().map(orderMapper::toResponse).toList();
     }
 
     @Override

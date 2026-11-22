@@ -38,14 +38,14 @@ public class OrderMapper {
     }
 
     public Order toEntity(
-            OrderRequestDto request, List<DishResponseDto> dishes, UserResponseDto user
+            OrderRequestDto request, List<DishResponseDto> dishes, UserResponseDto user, Long userId
     ) {
         if (request == null) {
             return null;
         }
 
         Order order = Order.builder()
-                .userId(request.getUserId())
+                .userId(userId)
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())
@@ -59,5 +59,9 @@ public class OrderMapper {
         order.setItems(items);
 
         return order;
+    }
+
+    public Order toEntity(OrderRequestDto request, List<DishResponseDto> dishes, UserResponseDto user) {
+        return toEntity(request, dishes, user, request.getUserId());
     }
 }
