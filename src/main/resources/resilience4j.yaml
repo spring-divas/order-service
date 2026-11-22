@@ -32,3 +32,10 @@ resilience4j:
       paymentClient:
         max-concurrent-calls: 10
         max-wait-duration: 20ms
+
+  ratelimiter:
+    instances:
+      orderService:
+        limit-for-period: 20
+        limit-refresh-period: 1s
+        timeout-duration: 0ms

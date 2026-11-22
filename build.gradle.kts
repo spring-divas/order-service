@@ -19,8 +19,16 @@ java {
 	}
 }
 
+val checkstyleVersion = "13.7.0"
+val protobufVersion = "4.36.2"
+val grpcVersion = "1.84.1"
+val logstashLogbackEncoderVersion = "9.0"
+val resilience4jVersion = "2.4.0"
+val wiremockVersion = "3.13.2"
+val pactVersion = "4.7.5"
+
 checkstyle {
-	toolVersion = "13.7.0"
+	toolVersion = checkstyleVersion
 	configFile = file("checks.xml")
 }
 
@@ -29,54 +37,59 @@ repositories {
 }
 
 dependencies {
+	// Production dependencies - Spring Boot Starters & Framework
 	implementation("org.springframework.boot:spring-boot-starter")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-restclient")
 	implementation("org.springframework.boot:spring-boot-starter-aspectj")
-
-	// gRPC Client dependencies (Spring Boot 4.1 native gRPC)
-	implementation("org.springframework.boot:spring-boot-starter-grpc-client")
-	implementation("io.grpc:grpc-protobuf")
-	implementation("io.grpc:grpc-stub")
-	implementation("com.google.protobuf:protobuf-java:4.36.2")
-	compileOnly("jakarta.annotation:jakarta.annotation-api")
-
-	implementation("net.logstash.logback:logstash-logback-encoder:9.0")
-
-	implementation("io.github.resilience4j:resilience4j-spring-boot4:2.4.0")
 	implementation("org.springframework.boot:spring-boot-starter-kafka")
 	implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
 
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-grpc-client-test")
-	testImplementation("org.wiremock:wiremock-standalone:3.13.2")
+	// Production dependencies - gRPC Client & Protobuf
+	implementation("org.springframework.boot:spring-boot-starter-grpc-client")
+	implementation("io.grpc:grpc-protobuf")
+	implementation("io.grpc:grpc-stub")
+	implementation("com.google.protobuf:protobuf-java:$protobufVersion")
 
-	implementation("org.springframework.boot:spring-boot-starter-actuator")
-	testImplementation("org.springframework.kafka:spring-kafka-test")
+	// Production dependencies - Resilience & Logging
+	implementation("io.github.resilience4j:resilience4j-spring-boot4:$resilience4jVersion")
+	implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
 
+	// Compile-only dependencies
+	compileOnly("jakarta.annotation:jakarta.annotation-api")
+	compileOnly("org.projectlombok:lombok")
+
+	// Annotation processors
+	annotationProcessor("org.projectlombok:lombok")
+
+	// Runtime dependencies
 	runtimeOnly("org.postgresql:postgresql")
 	runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
-	compileOnly("org.projectlombok:lombok")
-	annotationProcessor("org.projectlombok:lombok")
+	// Test dependencies
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-grpc-client-test")
+	testImplementation("org.springframework.kafka:spring-kafka-test")
+	testImplementation("org.wiremock:wiremock-standalone:$wiremockVersion")
+	testImplementation("com.h2database:h2")
+	testImplementation("au.com.dius.pact.provider:junit5:$pactVersion")
+
 	testCompileOnly("org.projectlombok:lombok")
 	testAnnotationProcessor("org.projectlombok:lombok")
-
-	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-	testImplementation("com.h2database:h2")
-	testImplementation("au.com.dius.pact.provider:junit5:4.7.5")
 }
 
 protobuf {
 	protoc {
-		artifact = "com.google.protobuf:protoc:4.36.2"
+		artifact = "com.google.protobuf:protoc:$protobufVersion"
 	}
 	plugins {
 		id("grpc") {
-			artifact = "io.grpc:protoc-gen-grpc-java:1.84.1"
+			artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion"
 		}
 	}
 	generateProtoTasks {

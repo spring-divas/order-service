@@ -302,6 +302,7 @@ class PaymentGrpcClientTest {
 
                 @Override
                 public void onError(Throwable t) {
+                    // Test in-process mock server ignores client stream errors
                 }
 
                 @Override

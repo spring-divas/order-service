@@ -184,35 +184,51 @@ public class PaymentGrpcClient {
             if (throwable == null) {
                 result.complete(response);
             } else {
-                boolean isUnavailable = isUnavailableError(throwable);
-
-                if (isUnavailable && attempt < DEFAULT_MAX_ATTEMPTS) {
-                    log.warn("[gRPC Retry Policy] Received UNAVAILABLE on attempt #{}. "
-                                    + "Retrying in {} ms...",
-                            attempt, currentBackoffMs);
-
-                    scheduler.schedule(() -> {
-                        long nextBackoff = (long) (currentBackoffMs * BACKOFF_MULTIPLIER);
-                        executeWithRetry(order, simulateFailure, attempt + 1, nextBackoff)
-                                .whenComplete((retryRes, retryErr) -> {
-                                    if (retryErr != null) {
-                                        result.completeExceptionally(retryErr);
-                                    } else {
-                                        result.complete(retryRes);
-                                    }
-                                });
-                    }, currentBackoffMs, TimeUnit.MILLISECONDS);
-                } else {
-                    if (isUnavailable) {
-                        log.error("[gRPC Retry Policy] All {} attempts exhausted for orderId={}",
-                                DEFAULT_MAX_ATTEMPTS, order.getId());
-                    }
-                    result.completeExceptionally(throwable);
-                }
+                handlePaymentError(order, simulateFailure, attempt, currentBackoffMs, throwable, result);
             }
         });
 
         return result;
+    }
+
+    private void handlePaymentError(
+            Order order, boolean simulateFailure, int attempt, long currentBackoffMs,
+            Throwable throwable, CompletableFuture<PaymentStreamResponse> result) {
+
+        boolean isUnavailable = isUnavailableError(throwable);
+        if (isUnavailable && attempt < DEFAULT_MAX_ATTEMPTS) {
+            scheduleRetry(order, simulateFailure, attempt, currentBackoffMs, result);
+            return;
+        }
+
+        if (isUnavailable) {
+            log.error("[gRPC Retry Policy] All {} attempts exhausted for orderId={}",
+                    DEFAULT_MAX_ATTEMPTS, order.getId());
+        }
+        result.completeExceptionally(throwable);
+    }
+
+    private void scheduleRetry(
+            Order order, boolean simulateFailure, int attempt, long currentBackoffMs,
+            CompletableFuture<PaymentStreamResponse> result) {
+
+        log.warn("[gRPC Retry Policy] Received UNAVAILABLE on attempt #{}. Retrying in {} ms...",
+                attempt, currentBackoffMs);
+
+        scheduler.schedule(() -> {
+            long nextBackoff = (long) (currentBackoffMs * BACKOFF_MULTIPLIER);
+            executeWithRetry(order, simulateFailure, attempt + 1, nextBackoff)
+                    .whenComplete((retryRes, retryErr) -> forwardResult(result, retryRes, retryErr));
+        }, currentBackoffMs, TimeUnit.MILLISECONDS);
+    }
+
+    private void forwardResult(CompletableFuture<PaymentStreamResponse> target,
+                               PaymentStreamResponse response, Throwable throwable) {
+        if (throwable != null) {
+            target.completeExceptionally(throwable);
+        } else {
+            target.complete(response);
+        }
     }
 
     private boolean isUnavailableError(Throwable throwable) {

@@ -1,25 +1,38 @@
 package org.spring.divas.order.feature.orderitem;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Builder;
 
 import java.math.BigDecimal;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class OrderItemResponseDto {
+@Builder
+public record OrderItemResponseDto(
+        Long id,
+        Long dishId,
+        String name,
+        Integer quantity,
+        BigDecimal price
+) {
+    public OrderItemResponseDto() {
+        this(null, null, null, null, null);
+    }
 
-    private Long id;
+    public Long getId() {
+        return id();
+    }
 
-    private Long dishId;
+    public Long getDishId() {
+        return dishId();
+    }
 
-    private String name;
+    public String getName() {
+        return name();
+    }
 
-    private Integer quantity;
+    public Integer getQuantity() {
+        return quantity();
+    }
 
-    private BigDecimal price;
+    public BigDecimal getPrice() {
+        return price();
+    }
 }

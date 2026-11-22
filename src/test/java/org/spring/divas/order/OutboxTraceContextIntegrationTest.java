@@ -20,8 +20,6 @@ class OutboxTraceContextIntegrationTest {
 
     @Test
     void shouldDisplayTraceContextForLatestOutboxEvents() {
-        List<OutboxEvent> events = outboxRepository.findTop100ByPublishedAtIsNullOrderByCreatedAtAscIdAsc();
-
         List<OutboxEvent> latestEvents = outboxRepository.findAll()
                 .stream()
                 .sorted((a, b) -> b.getId().compareTo(a.getId()))

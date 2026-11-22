@@ -1,23 +1,33 @@
 package org.spring.divas.order.feature.payment;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class PaymentResponseDto {
+@Builder
+public record PaymentResponseDto(
+        Long id,
+        Long orderId,
+        String status,
+        LocalDateTime createdAt
+) {
+    public PaymentResponseDto() {
+        this(null, null, null, null);
+    }
 
-    private Long id;
+    public Long getId() {
+        return id();
+    }
 
-    private Long orderId;
+    public Long getOrderId() {
+        return orderId();
+    }
 
-    private String status;
+    public String getStatus() {
+        return status();
+    }
 
-    private LocalDateTime createdAt;
+    public LocalDateTime getCreatedAt() {
+        return createdAt();
+    }
 }

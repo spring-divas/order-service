@@ -1,4 +1,4 @@
-/*package org.spring.divas.order;
+package org.spring.divas.order;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest(properties = {"venue.service.url=http://localhost:8067"})
 @WireMockTest(httpPort = 8067)
 @Import(TestClientConfig.class)
-public class ResilienceVenueClientTest {
+class ResilienceVenueClientTest {
 
     @Autowired
     private ResilientVenueClient venueClient;
@@ -57,10 +57,12 @@ public class ResilienceVenueClientTest {
         stubFor(post(urlEqualTo("/api/dish/batch"))
                 .willReturn(serverError()));
         for (int i = 0; i < 20; i++) {
-            try { venueClient.getDishesByIds(List.of(1L)); }
-            catch (Exception ignored) {}
+            try {
+                venueClient.getDishesByIds(List.of(1L));
+            } catch (Exception _) {
+                // Expected failure to trigger circuit breaker open state
+            }
         }
         assertEquals(CircuitBreaker.State.OPEN, circuitBreaker.getState());
     }
 }
-*/

@@ -116,6 +116,7 @@ class OrderControllerGrpcIntegrationTest {
 
                             @Override
                             public void onError(Throwable t) {
+                                // Errors are not expected in test mock gRPC server
                             }
 
                             @Override
