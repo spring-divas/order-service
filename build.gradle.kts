@@ -73,6 +73,11 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-grpc-client-test")
+	testImplementation("org.wiremock:wiremock-standalone:3.13.2")
+
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation("de.codecentric:chaos-monkey-spring-boot:4.0.0")
+
 	testImplementation("org.springframework.kafka:spring-kafka-test")
 	testImplementation("org.wiremock:wiremock-standalone:$wiremockVersion")
 	testImplementation("com.h2database:h2")
@@ -81,6 +86,9 @@ dependencies {
 	testCompileOnly("org.projectlombok:lombok")
 	testAnnotationProcessor("org.projectlombok:lombok")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testImplementation("com.h2database:h2")
+	testImplementation("au.com.dius.pact.provider:junit5:4.7.5")
+	testImplementation("au.com.dius.pact.consumer:junit5:4.7.5")
 }
 
 protobuf {
@@ -110,6 +118,10 @@ tasks.named<Test>("test") {
 	systemProperty(
 		"pactfolder.path",
 		pactFolder
+	)
+	systemProperty(
+		"pact.rootDir",
+		System.getProperty("pact.rootDir", project.file("../common/contract/pact").absolutePath)
 	)
 }
 

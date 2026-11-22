@@ -4,6 +4,7 @@ import au.com.dius.pact.provider.PactVerifyProvider;
 import au.com.dius.pact.provider.junit5.MessageTestTarget;
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
+import au.com.dius.pact.provider.junitsupport.Consumer;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.util.List;
 
 @Provider("order-service")
+@Consumer("payment-service")
 @PactFolder("${pactfolder.path}")
 class OrderCreatedPactVerificationTest {
 
