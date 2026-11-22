@@ -4,8 +4,10 @@ import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import jakarta.validation.ConstraintViolationException;
 import org.spring.divas.order.feature.order.OrderNotFoundException;
 import org.spring.divas.order.feature.orderitem.OrderItemNotFoundException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,11 +31,6 @@ public class GlobalExceptionHandler {
         return createProblemDetail(HttpStatus.NOT_FOUND, "Order Item Not Found", ex.getMessage());
     }
 
-    @ExceptionHandler(RequestNotPermitted.class)
-    public ProblemDetail handleRateLimitExceeded(RequestNotPermitted ex) {
-        return createProblemDetail(HttpStatus.TOO_MANY_REQUESTS, "Rate Limit Exceeded", "Too many requests. Please try again later.");
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidation(MethodArgumentNotValidException exception) {
         ProblemDetail problem = createProblemDetail(HttpStatus.BAD_REQUEST, "Validation Error", "Request validation failed");
@@ -48,6 +45,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ProblemDetail handleConstraintViolation(ConstraintViolationException exception) {
         return createProblemDetail(HttpStatus.BAD_REQUEST, "Validation Error", exception.getMessage());
+    }
+
+    @ExceptionHandler(RequestNotPermitted.class)
+    public ResponseEntity<ProblemDetail> handleRateLimitExceeded(RequestNotPermitted exception) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, "1")
+                .body(createProblemDetail(
+                        HttpStatus.TOO_MANY_REQUESTS,
+                        "Too Many Requests",
+                        "Rate limit exceeded. Please try again later."));
     }
 
     @ExceptionHandler(Exception.class)

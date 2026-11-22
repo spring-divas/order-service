@@ -38,7 +38,7 @@ resilience4j:
 
   ratelimiter:
     instances:
-      orderService:
+      orderApi:
         limit-for-period: 100
         limit-refresh-period: 1s
-        timeout-duration: 0ms
+        timeout-duration: 0s

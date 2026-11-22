@@ -5,8 +5,10 @@ import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.spring.divas.order.feature.order.OrderNotFoundException;
 import org.spring.divas.order.feature.orderitem.OrderItemNotFoundException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -59,12 +61,14 @@ class GlobalExceptionHandlerTest {
     void shouldHandleRateLimitExceeded() {
         RequestNotPermitted ex = mock(RequestNotPermitted.class);
 
-        ProblemDetail problem = handler.handleRateLimitExceeded(ex);
+        ResponseEntity<ProblemDetail> response = handler.handleRateLimitExceeded(ex);
+        ProblemDetail problem = response.getBody();
 
+        assertEquals("1", response.getHeaders().getFirst(HttpHeaders.RETRY_AFTER));
         assertNotNull(problem);
         assertEquals(HttpStatus.TOO_MANY_REQUESTS.value(), problem.getStatus());
-        assertEquals("Rate Limit Exceeded", problem.getTitle());
-        assertEquals("Too many requests. Please try again later.", problem.getDetail());
+        assertEquals("Too Many Requests", problem.getTitle());
+        assertEquals("Rate limit exceeded. Please try again later.", problem.getDetail());
         assertNotNull(problem.getProperties().get("timestamp"));
     }
 
