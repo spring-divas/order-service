@@ -10,6 +10,10 @@ resilience4j:
         sliding-window-size: 10
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
+      userClient:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
 
   retry:
     retry-aspect-order: 2
@@ -23,6 +27,10 @@ resilience4j:
         wait-duration: 500ms
         enable-exponential-backoff: true
         enable-randomized-wait: true
+      userClient:
+        max-attempts: 2
+        wait-duration: 100ms
+        enable-exponential-backoff: true
 
   bulkhead:
     instances:
@@ -30,6 +38,9 @@ resilience4j:
         max-concurrent-calls: 5
         max-wait-duration: 20ms
       paymentClient:
+        max-concurrent-calls: 10
+        max-wait-duration: 20ms
+      userClient:
         max-concurrent-calls: 10
         max-wait-duration: 20ms
 
