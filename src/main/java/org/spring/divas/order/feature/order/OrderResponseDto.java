@@ -1,37 +1,65 @@
 package org.spring.divas.order.feature.order;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Builder;
 import org.spring.divas.order.feature.orderitem.OrderItemResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class OrderResponseDto {
+@Builder
+public record OrderResponseDto(
+        Long id,
+        Long userId,
+        String firstName,
+        String lastName,
+        String email,
+        Long venueId,
+        Long tableId,
+        OrderStatus status,
+        LocalDateTime createdAt,
+        List<OrderItemResponseDto> items
+) {
+    public OrderResponseDto() {
+        this(null, null, null, null, null, null, null, null, null, null);
+    }
 
-    private Long id;
+    public Long getId() {
+        return id();
+    }
 
-    private Long userId;
+    public Long getUserId() {
+        return userId();
+    }
 
-    private String firstName;
+    public String getFirstName() {
+        return firstName();
+    }
 
-    private String lastName;
+    public String getLastName() {
+        return lastName();
+    }
 
-    private String email;
+    public String getEmail() {
+        return email();
+    }
 
-    private Long venueId;
+    public Long getVenueId() {
+        return venueId();
+    }
 
-    private Long tableId;
+    public Long getTableId() {
+        return tableId();
+    }
 
-    private OrderStatus status;
+    public OrderStatus getStatus() {
+        return status();
+    }
 
-    private LocalDateTime createdAt;
+    public LocalDateTime getCreatedAt() {
+        return createdAt();
+    }
 
-    private List<OrderItemResponseDto> items;
+    public List<OrderItemResponseDto> getItems() {
+        return items();
+    }
 }

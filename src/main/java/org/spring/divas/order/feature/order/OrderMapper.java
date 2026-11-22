@@ -8,7 +8,6 @@ import org.spring.divas.order.feature.user.UserResponseDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -34,7 +33,7 @@ public class OrderMapper {
                 order.getItems()
                         .stream()
                         .map(orderItemMapper::toResponse)
-                        .collect(Collectors.toList())
+                        .toList()
         );
     }
 

@@ -141,12 +141,16 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponseDto cancel(Long id) {
-        return cancel(id, "User requested cancellation");
+        return executeCancel(id, "User requested cancellation");
     }
 
     @Override
     @Transactional
     public OrderResponseDto cancel(Long id, String reason) {
+        return executeCancel(id, reason);
+    }
+
+    private OrderResponseDto executeCancel(Long id, String reason) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException(id));
 

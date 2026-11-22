@@ -1,4 +1,4 @@
-/*package org.spring.divas.order;
+package org.spring.divas.order;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -14,8 +14,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-
-import java.time.LocalDateTime;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -64,14 +62,16 @@ class ResiliencePaymentClientTest {
                                 aResponse()
                                         .withStatus(500)
                                         .withHeader("Content-Type", "application/problem+json")
-                                        .withBody("""
-                                            {
-                                              "type": "about:blank",
-                                              "title": "Internal Server Error",
-                                              "status": 500,
-                                              "detail": "Payment service unavailable"
-                                            }
-                                            """)
+                                        .withBody(
+                                                """
+                                                {
+                                                  "type": "about:blank",
+                                                  "title": "Internal Server Error",
+                                                  "status": 500,
+                                                  "detail": "Payment service unavailable"
+                                                }
+                                                """
+                                        )
                         )
         );
 
@@ -94,14 +94,16 @@ class ResiliencePaymentClientTest {
                                 aResponse()
                                         .withStatus(500)
                                         .withHeader("Content-Type", "application/problem+json")
-                                        .withBody("""
-                                            {
-                                              "type": "about:blank",
-                                              "title": "Internal Server Error",
-                                              "status": 500,
-                                              "detail": "Payment service unavailable"
-                                            }
-                                            """)
+                                        .withBody(
+                                                """
+                                                {
+                                                  "type": "about:blank",
+                                                  "title": "Internal Server Error",
+                                                  "status": 500,
+                                                  "detail": "Payment service unavailable"
+                                                }
+                                                """
+                                        )
                         )
         );
 
@@ -144,8 +146,72 @@ class ResiliencePaymentClientTest {
     }
 
     @Test
-    void shouldPropagateCorrelationId() {
+    void shouldOpenCircuitBreakerAndUseFallbackOnNetworkDelay() {
+        // First 9 fast failures to reach sliding window threshold
+        wireMock.stubFor(
+                post(urlEqualTo("/api/payment"))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(500)
+                                        .withHeader("Content-Type", "application/problem+json")
+                                        .withBody(
+                                                """
+                                                {
+                                                  "type": "about:blank",
+                                                  "title": "Internal Server Error",
+                                                  "status": 500,
+                                                  "detail": "Payment service unavailable"
+                                                }
+                                                """
+                                        )
+                        )
+        );
 
+        for (int i = 0; i < 9; i++) {
+            resilientPaymentClient.createPayment(1L, "cb-delay-prep-" + i);
+        }
+
+        // Artificial network delay that exceeds readTimeout (3500ms delay vs 3s readTimeout)
+        wireMock.stubFor(
+                post(urlEqualTo("/api/payment"))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(200)
+                                        .withFixedDelay(3500)
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody(
+                                                """
+                                                {
+                                                  "id": 99,
+                                                  "orderId": 1,
+                                                  "status": "PAID",
+                                                  "createdAt": "2026-10-03T02:00:00"
+                                                }
+                                                """
+                                        )
+                        )
+        );
+
+        // 10th call times out due to artificial network delay, fallback activates without crash
+        PaymentResponseDto response = resilientPaymentClient.createPayment(1L, "delay-timeout-test");
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo("PENDING");
+        assertThat(response.getId()).isNull();
+        assertThat(response.getOrderId()).isEqualTo(1L);
+
+        // Circuit breaker transitioned to OPEN state
+        CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker("paymentClient");
+        assertEquals(CircuitBreaker.State.OPEN, circuitBreaker.getState());
+
+        // Subsequent call is handled immediately by fallback without hitting the network
+        wireMock.resetRequests();
+        PaymentResponseDto openStateResponse = resilientPaymentClient.createPayment(1L, "cb-open-fallback");
+        assertThat(openStateResponse.getStatus()).isEqualTo("PENDING");
+        wireMock.verify(0, postRequestedFor(urlEqualTo("/api/payment")));
+    }
+
+    @Test
+    void shouldPropagateCorrelationId() {
         wireMock.stubFor(
                 post(urlEqualTo("/api/payment"))
                         .willReturn(
@@ -155,19 +221,19 @@ class ResiliencePaymentClientTest {
                                                 "Content-Type",
                                                 "application/json"
                                         )
-                                        .withBody("""
+                                        .withBody(
+                                                """
                                                 {
                                                   "id": 10,
                                                   "orderId": 1,
                                                   "status": "PENDING",
                                                   "createdAt": "2026-10-03T02:00:00"
                                                 }
-                                                """)
+                                                """
+                                        )
                         )
         );
 
-        // CorrelationIdContext is ThreadLocal, therefore set it
-        // before calling the client.
         CorrelationIdContext.set("test-123");
 
         try {
@@ -195,7 +261,6 @@ class ResiliencePaymentClientTest {
 
     @Test
     void shouldRetryWhenPaymentReturnsProblemDetail() {
-
         wireMock.stubFor(
                 post(urlEqualTo("/api/payment"))
                         .willReturn(
@@ -205,14 +270,16 @@ class ResiliencePaymentClientTest {
                                                 "Content-Type",
                                                 "application/problem+json"
                                         )
-                                        .withBody("""
+                                        .withBody(
+                                                """
                                                 {
                                                   "type": "about:blank",
                                                   "title": "Internal Server Error",
                                                   "status": 500,
                                                   "detail": "Payment service failed"
                                                 }
-                                                """)
+                                                """
+                                        )
                         )
         );
 
@@ -226,9 +293,6 @@ class ResiliencePaymentClientTest {
         assertThat(response.getOrderId()).isEqualTo(50L);
         assertThat(response.getStatus()).isEqualTo("PENDING");
 
-        // ProblemDetail response has status 500,
-        // therefore Resilience4j treats it as a failed call
-        // and Retry performs three attempts.
         wireMock.verify(
                 3,
                 postRequestedFor(urlEqualTo("/api/payment"))
@@ -242,14 +306,16 @@ class ResiliencePaymentClientTest {
                                 aResponse()
                                         .withStatus(500)
                                         .withHeader("Content-Type", "application/problem+json")
-                                        .withBody("""
-                                            {
-                                              "type": "about:blank",
-                                              "title": "Internal Server Error",
-                                              "status": 500,
-                                              "detail": "Payment service unavailable"
-                                            }
-                                            """)
+                                        .withBody(
+                                                """
+                                                {
+                                                  "type": "about:blank",
+                                                  "title": "Internal Server Error",
+                                                  "status": 500,
+                                                  "detail": "Payment service unavailable"
+                                                }
+                                                """
+                                        )
                         )
         );
 
@@ -267,4 +333,4 @@ class ResiliencePaymentClientTest {
                         .getState()
         );
     }
-}*/
+}

@@ -52,7 +52,7 @@ public class PollingOutboxScheduler {
                     .name("outbox.publish")
                     .start();
 
-            try (Tracer.SpanInScope ignored = tracer.withSpan(publishSpan)) {
+            try (var _ = tracer.withSpan(publishSpan)) {
                 kafkaTemplate.send(
                         TOPIC,
                         event.getAggregateId(),

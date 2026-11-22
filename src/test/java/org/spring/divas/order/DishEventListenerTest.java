@@ -69,19 +69,19 @@ class DishEventListenerTest extends KafkaIntegrationTest {
                 .when(dishService).create(any(DishRequestDto.class));
         try (var dltConsumer = consumer("dish-events-dlt")) {
             send(eventId, event(eventId, 103L));
-            var record = awaitRecord(dltConsumer, eventId.toString());
-            assertThat(record.value()).contains(eventId.toString());
+            var recordFound = awaitRecord(dltConsumer, eventId.toString());
+            assertThat(recordFound.value()).contains(eventId.toString());
             assertThat(processedEventRepository.existsByEventId(eventId)).isFalse();
         }
     }
 
     private void send(UUID eventId, Object payload) {
         try {
-            var record = new ProducerRecord<>(
+            var recordFound = new ProducerRecord<>(
                     "dish-events", eventId.toString(), objectMapper.writeValueAsString(payload));
-            record.headers().add("eventId", eventId.toString().getBytes(StandardCharsets.UTF_8));
-            record.headers().add("eventType", "DishCreated".getBytes(StandardCharsets.UTF_8));
-            kafkaTemplate.send(record).get();
+            recordFound.headers().add("eventId", eventId.toString().getBytes(StandardCharsets.UTF_8));
+            recordFound.headers().add("eventType", "DishCreated".getBytes(StandardCharsets.UTF_8));
+            kafkaTemplate.send(recordFound).get();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
