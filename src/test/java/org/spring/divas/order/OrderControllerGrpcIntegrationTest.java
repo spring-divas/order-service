@@ -224,4 +224,13 @@ class OrderControllerGrpcIntegrationTest {
         Order updated = orderRepository.findById(order.getId()).orElseThrow();
         assertThat(updated.getStatus()).isEqualTo(OrderStatus.CANCELLED);
     }
+
+    @Test
+    @DisplayName("OrderServiceImpl.pay should not be annotated with @Transactional")
+    void testPayMethodNotTransactional() throws NoSuchMethodException {
+        java.lang.reflect.Method payMethod = org.spring.divas.order.feature.order.OrderServiceImpl.class
+                .getMethod("pay", Long.class, boolean.class);
+        assertThat(payMethod.isAnnotationPresent(org.springframework.transaction.annotation.Transactional.class))
+                .isFalse();
+    }
 }
