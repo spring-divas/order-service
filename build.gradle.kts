@@ -112,3 +112,7 @@ tasks.named<Test>("test") {
 		pactFolder
 	)
 }
+
+tasks.named<Checkstyle>("checkstyleMain"){
+	source = fileTree("src/main/java")
+}
