@@ -171,7 +171,7 @@ class OrderOutboxKafkaIntegrationTest {
 
 
     @Test
-    void shouldCreateOutboxEventWithValidOrderCreatedJson(){
+    void shouldCreateOutboxEventWithValidOrderCreatedJson() {
         long orderId = 1234L;
 
         Order order = Order.builder()
@@ -270,7 +270,8 @@ class OrderOutboxKafkaIntegrationTest {
     }
 
     private OutboxEvent createOutboxEvent(UUID eventId, Long orderId) {
-        String payload = """
+        String payload =
+                """
                 {
                   "eventId": "%s",
                   "orderId": %d,

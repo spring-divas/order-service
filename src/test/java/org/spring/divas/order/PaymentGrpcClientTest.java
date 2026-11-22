@@ -34,6 +34,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.test.util.ReflectionTestUtils;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -206,6 +208,171 @@ class PaymentGrpcClientTest {
         assertThat(testServerService.getStreamOpenCount()).isEqualTo(3);
     }
 
+    @Test
+    @DisplayName("processRealtimePayment handles null userId, email and items gracefully")
+    void testProcessRealtimePaymentWithNullFieldsAndNullItems() throws Exception {
+        Order order = Order.builder()
+                .id(201L)
+                .userId(null)
+                .email(null)
+                .items(null)
+                .build();
+        when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
+
+        CompletableFuture<PaymentStreamResponse> future =
+                paymentGrpcClient.processRealtimePayment(order, false);
+        PaymentStreamResponse response = future.get(5, TimeUnit.SECONDS);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(org.spring.divas.payment.v1.PaymentStatus.PAYMENT_STATUS_PAID);
+    }
+
+    @Test
+    @DisplayName("processRealtimePayment handles empty items list")
+    void testProcessRealtimePaymentWithEmptyItems() throws Exception {
+        Order order = Order.builder()
+                .id(202L)
+                .userId(5L)
+                .email("user@divas.ua")
+                .items(new ArrayList<>())
+                .build();
+        when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
+
+        CompletableFuture<PaymentStreamResponse> future =
+                paymentGrpcClient.processRealtimePayment(order, false);
+        PaymentStreamResponse response = future.get(5, TimeUnit.SECONDS);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(org.spring.divas.payment.v1.PaymentStatus.PAYMENT_STATUS_PAID);
+    }
+
+    @Test
+    @DisplayName("sendOrderCancellation with null paymentId and reason uses default values")
+    void testSendOrderCancellationWithNulls() throws Exception {
+        CompletableFuture<PaymentStreamResponse> future =
+                paymentGrpcClient.sendOrderCancellation(203L, null, null);
+
+        PaymentStreamResponse response = future.get(5, TimeUnit.SECONDS);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus())
+                .isEqualTo(org.spring.divas.payment.v1.PaymentStatus.PAYMENT_STATUS_CANCELLED);
+    }
+
+    @Test
+    @DisplayName("sendOrderCancellation completes exceptionally when server reports error")
+    void testSendOrderCancellationError() {
+        testServerService.setCancelError(true);
+
+        CompletableFuture<PaymentStreamResponse> future =
+                paymentGrpcClient.sendOrderCancellation(204L, 999L, "Cancel order");
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class);
+    }
+
+    @Test
+    @DisplayName("processRealtimePayment completes exceptionally when server returns direct error")
+    void testProcessRealtimePaymentDirectError() {
+        Order order = createSampleOrder(206L);
+        testServerService.setImmediateError(Status.INTERNAL.withDescription("Direct internal error"));
+
+        CompletableFuture<PaymentStreamResponse> future =
+                paymentGrpcClient.processRealtimePayment(order, false);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(io.grpc.StatusRuntimeException.class);
+    }
+
+    @Test
+    @DisplayName("Retry Policy: non-UNAVAILABLE error is not retried and fails immediately")
+    void testProcessRealtimePaymentWithRetryNonUnavailable() {
+        Order order = createSampleOrder(207L);
+        testServerService.setImmediateError(Status.INVALID_ARGUMENT.withDescription("Invalid payload"));
+
+        CompletableFuture<PaymentStreamResponse> future =
+                paymentGrpcClient.processRealtimePaymentWithRetry(order, false);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(io.grpc.StatusRuntimeException.class)
+                .satisfies(ex -> {
+                    io.grpc.StatusRuntimeException sre = (io.grpc.StatusRuntimeException) ex.getCause();
+                    assertThat(sre.getStatus().getCode()).isEqualTo(Status.Code.INVALID_ARGUMENT);
+                });
+
+        assertThat(testServerService.getStreamOpenCount()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("Test isUnavailableError helper branch coverage")
+    void testIsUnavailableErrorBranches() {
+        Boolean res1 = ReflectionTestUtils.invokeMethod(
+                paymentGrpcClient, "isUnavailableError",
+                new io.grpc.StatusRuntimeException(Status.UNAVAILABLE));
+        assertThat(res1).isTrue();
+
+        Boolean res2 = ReflectionTestUtils.invokeMethod(
+                paymentGrpcClient, "isUnavailableError",
+                new io.grpc.StatusRuntimeException(Status.NOT_FOUND));
+        assertThat(res2).isFalse();
+
+        Boolean res3 = ReflectionTestUtils.invokeMethod(
+                paymentGrpcClient, "isUnavailableError",
+                new RuntimeException(new io.grpc.StatusRuntimeException(Status.UNAVAILABLE)));
+        assertThat(res3).isTrue();
+
+        Boolean res4 = ReflectionTestUtils.invokeMethod(
+                paymentGrpcClient, "isUnavailableError",
+                new RuntimeException(new io.grpc.StatusRuntimeException(Status.PERMISSION_DENIED)));
+        assertThat(res4).isFalse();
+
+        Boolean res5 = ReflectionTestUtils.invokeMethod(
+                paymentGrpcClient, "isUnavailableError",
+                new RuntimeException("no cause"));
+        assertThat(res5).isFalse();
+
+        Boolean res6 = ReflectionTestUtils.invokeMethod(
+                paymentGrpcClient, "isUnavailableError",
+                new RuntimeException(new IllegalArgumentException("other cause")));
+        assertThat(res6).isFalse();
+    }
+
+    @Test
+    @DisplayName("Test forwardResult helper branch coverage")
+    void testForwardResultBranches() throws Exception {
+        CompletableFuture<PaymentStreamResponse> targetSuccess = new CompletableFuture<>();
+        PaymentStreamResponse sampleResponse = PaymentStreamResponse.newBuilder()
+                .setStatus(org.spring.divas.payment.v1.PaymentStatus.PAYMENT_STATUS_PAID)
+                .build();
+
+        ReflectionTestUtils.invokeMethod(
+                paymentGrpcClient, "forwardResult", targetSuccess, sampleResponse, null);
+        assertThat(targetSuccess.get(1, TimeUnit.SECONDS)).isEqualTo(sampleResponse);
+
+        CompletableFuture<PaymentStreamResponse> targetFailure = new CompletableFuture<>();
+        Throwable sampleError = new RuntimeException("Test error");
+
+        ReflectionTestUtils.invokeMethod(
+                paymentGrpcClient, "forwardResult", targetFailure, null, sampleError);
+        assertThat(targetFailure).isCompletedExceptionally();
+    }
+
+    @Test
+    @DisplayName("Test calculateTotal helper branch coverage")
+    void testCalculateTotalBranches() {
+        Order nullItemsOrder = Order.builder().items(null).build();
+        BigDecimal totalNull = ReflectionTestUtils.invokeMethod(
+                paymentGrpcClient, "calculateTotal", nullItemsOrder);
+        assertThat(totalNull).isEqualTo(BigDecimal.ZERO);
+
+        Order emptyItemsOrder = Order.builder().items(new ArrayList<>()).build();
+        BigDecimal totalEmpty = ReflectionTestUtils.invokeMethod(
+                paymentGrpcClient, "calculateTotal", emptyItemsOrder);
+        assertThat(totalEmpty).isEqualTo(BigDecimal.ZERO);
+    }
+
     /**
      * Test mock for PaymentService gRPC bidirectional stream server.
      */
@@ -214,9 +381,24 @@ class PaymentGrpcClientTest {
 
         private final AtomicInteger streamOpenCount = new AtomicInteger(0);
         private volatile int failuresBeforeSuccess = 0;
+        private volatile Status immediateError;
+        private volatile boolean sendUnknownStatus;
+        private volatile boolean cancelError;
 
         void setFailuresBeforeSuccess(int count) {
             this.failuresBeforeSuccess = count;
+        }
+
+        void setImmediateError(Status status) {
+            this.immediateError = status;
+        }
+
+        void setSendUnknownStatus(boolean sendUnknownStatus) {
+            this.sendUnknownStatus = sendUnknownStatus;
+        }
+
+        void setCancelError(boolean cancelError) {
+            this.cancelError = cancelError;
         }
 
         int getStreamOpenCount() {
@@ -225,9 +407,26 @@ class PaymentGrpcClientTest {
 
         @Override
         public StreamObserver<PaymentStreamRequest> processPaymentStream(
-            StreamObserver<PaymentStreamResponse> responseObserver) {
+                StreamObserver<PaymentStreamResponse> responseObserver) {
 
             int currentAttempt = streamOpenCount.incrementAndGet();
+
+            if (immediateError != null) {
+                responseObserver.onError(immediateError.asRuntimeException());
+                return new StreamObserver<>() {
+                    @Override
+                    public void onNext(PaymentStreamRequest value) {
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                    }
+                };
+            }
 
             return new StreamObserver<>() {
                 private Long orderId;
@@ -241,6 +440,15 @@ class PaymentGrpcClientTest {
                             responseObserver.onError(Status.UNAVAILABLE
                                     .withDescription("Payment server temporarily unavailable")
                                     .asRuntimeException());
+                            return;
+                        }
+
+                        if (sendUnknownStatus) {
+                            PaymentStreamResponse unknown = PaymentStreamResponse.newBuilder()
+                                    .setStatus(org.spring.divas.payment.v1.PaymentStatus.UNRECOGNIZED)
+                                    .setMessage("Unknown status")
+                                    .build();
+                            responseObserver.onNext(unknown);
                             return;
                         }
 
@@ -287,6 +495,12 @@ class PaymentGrpcClientTest {
                             responseObserver.onNext(paid);
                         }
                     } else if (request.hasCancellation()) {
+                        if (cancelError) {
+                            responseObserver.onError(Status.INTERNAL
+                                    .withDescription("Cancellation error")
+                                    .asRuntimeException());
+                            return;
+                        }
                         OrderCancellation cancel = request.getCancellation();
                         PaymentStreamResponse cancelled = PaymentStreamResponse.newBuilder()
                                 .setPaymentId(cancel.getPaymentId())

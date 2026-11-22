@@ -62,14 +62,16 @@ class ResiliencePaymentClientTest {
                                 aResponse()
                                         .withStatus(500)
                                         .withHeader("Content-Type", "application/problem+json")
-                                        .withBody("""
-                                            {
-                                              "type": "about:blank",
-                                              "title": "Internal Server Error",
-                                              "status": 500,
-                                              "detail": "Payment service unavailable"
-                                            }
-                                            """)
+                                        .withBody(
+                                                """
+                                                {
+                                                  "type": "about:blank",
+                                                  "title": "Internal Server Error",
+                                                  "status": 500,
+                                                  "detail": "Payment service unavailable"
+                                                }
+                                                """
+                                        )
                         )
         );
 
@@ -92,14 +94,16 @@ class ResiliencePaymentClientTest {
                                 aResponse()
                                         .withStatus(500)
                                         .withHeader("Content-Type", "application/problem+json")
-                                        .withBody("""
-                                            {
-                                              "type": "about:blank",
-                                              "title": "Internal Server Error",
-                                              "status": 500,
-                                              "detail": "Payment service unavailable"
-                                            }
-                                            """)
+                                        .withBody(
+                                                """
+                                                {
+                                                  "type": "about:blank",
+                                                  "title": "Internal Server Error",
+                                                  "status": 500,
+                                                  "detail": "Payment service unavailable"
+                                                }
+                                                """
+                                        )
                         )
         );
 
@@ -150,14 +154,16 @@ class ResiliencePaymentClientTest {
                                 aResponse()
                                         .withStatus(500)
                                         .withHeader("Content-Type", "application/problem+json")
-                                        .withBody("""
-                                            {
-                                              "type": "about:blank",
-                                              "title": "Internal Server Error",
-                                              "status": 500,
-                                              "detail": "Payment service unavailable"
-                                            }
-                                            """)
+                                        .withBody(
+                                                """
+                                                {
+                                                  "type": "about:blank",
+                                                  "title": "Internal Server Error",
+                                                  "status": 500,
+                                                  "detail": "Payment service unavailable"
+                                                }
+                                                """
+                                        )
                         )
         );
 
@@ -173,14 +179,16 @@ class ResiliencePaymentClientTest {
                                         .withStatus(200)
                                         .withFixedDelay(3500)
                                         .withHeader("Content-Type", "application/json")
-                                        .withBody("""
+                                        .withBody(
+                                                """
                                                 {
                                                   "id": 99,
                                                   "orderId": 1,
                                                   "status": "PAID",
                                                   "createdAt": "2026-10-03T02:00:00"
                                                 }
-                                                """)
+                                                """
+                                        )
                         )
         );
 
@@ -213,14 +221,16 @@ class ResiliencePaymentClientTest {
                                                 "Content-Type",
                                                 "application/json"
                                         )
-                                        .withBody("""
+                                        .withBody(
+                                                """
                                                 {
                                                   "id": 10,
                                                   "orderId": 1,
                                                   "status": "PENDING",
                                                   "createdAt": "2026-10-03T02:00:00"
                                                 }
-                                                """)
+                                                """
+                                        )
                         )
         );
 
@@ -260,14 +270,16 @@ class ResiliencePaymentClientTest {
                                                 "Content-Type",
                                                 "application/problem+json"
                                         )
-                                        .withBody("""
+                                        .withBody(
+                                                """
                                                 {
                                                   "type": "about:blank",
                                                   "title": "Internal Server Error",
                                                   "status": 500,
                                                   "detail": "Payment service failed"
                                                 }
-                                                """)
+                                                """
+                                        )
                         )
         );
 
@@ -294,14 +306,16 @@ class ResiliencePaymentClientTest {
                                 aResponse()
                                         .withStatus(500)
                                         .withHeader("Content-Type", "application/problem+json")
-                                        .withBody("""
-                                            {
-                                              "type": "about:blank",
-                                              "title": "Internal Server Error",
-                                              "status": 500,
-                                              "detail": "Payment service unavailable"
-                                            }
-                                            """)
+                                        .withBody(
+                                                """
+                                                {
+                                                  "type": "about:blank",
+                                                  "title": "Internal Server Error",
+                                                  "status": 500,
+                                                  "detail": "Payment service unavailable"
+                                                }
+                                                """
+                                        )
                         )
         );
 

@@ -50,7 +50,8 @@ class OutboxKafkaIntegrationTest {
     void pendingOutboxEventIsPublishedToKafka() throws Exception {
         UUID eventId = UUID.randomUUID();
 
-        String payload = """
+        String payload =
+                """
                 {
                   "eventId": "%s",
                   "orderId": 321,
@@ -58,7 +59,7 @@ class OutboxKafkaIntegrationTest {
                 }
                 """.formatted(eventId, Instant.now());
 
-        OutboxEvent event = outboxRepository.save(
+        final OutboxEvent event = outboxRepository.save(
                 OutboxEvent.builder()
                         .eventId(eventId)
                         .aggregateType("Order")
@@ -125,16 +126,17 @@ class OutboxKafkaIntegrationTest {
     }
 
     @Test
-    void alreadyPublishedEventIsNotPublishedToKafkaAgain(){
+    void alreadyPublishedEventIsNotPublishedToKafkaAgain() {
         UUID eventId = UUID.randomUUID();
 
-        String payload = """
-            {
-              "eventId": "%s",
-              "orderId": 915,
-              "occurredAt": "%s"
-            }
-            """.formatted(eventId, Instant.now());
+        String payload =
+                """
+                {
+                  "eventId": "%s",
+                  "orderId": 915,
+                  "occurredAt": "%s"
+                }
+                """.formatted(eventId, Instant.now());
 
         OutboxEvent event = outboxRepository.saveAndFlush(
                 OutboxEvent.builder()
