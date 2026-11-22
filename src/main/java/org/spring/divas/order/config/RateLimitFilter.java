@@ -35,7 +35,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return requestPath(request).startsWith(ACTUATOR_PATH);
+        String path = requestPath(request);
+        return path.equals(ACTUATOR_PATH) || path.startsWith(ACTUATOR_PATH + "/");
     }
 
     @Override
