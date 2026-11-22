@@ -11,7 +11,7 @@ class OrderMetricsServiceTest {
     @Test
     void shouldRegisterGaugeAndCounter() {
         SimpleMeterRegistry registry = new SimpleMeterRegistry();
-        OrderMetricsService metrics = new OrderMetricsService(registry);
+        new OrderMetricsService(registry);
 
         assertNotNull(registry.find("orders.not.ready").gauge());
         assertNotNull(registry.find("orders.cancelled").counter());

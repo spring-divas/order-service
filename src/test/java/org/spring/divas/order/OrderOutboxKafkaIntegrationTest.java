@@ -171,7 +171,7 @@ class OrderOutboxKafkaIntegrationTest {
 
 
     @Test
-    void shouldCreateOutboxEventWithValidOrderCreatedJson(){
+    void shouldCreateOutboxEventWithValidOrderCreatedJson() {
         long orderId = 1234L;
 
         Order order = Order.builder()
@@ -240,7 +240,7 @@ class OrderOutboxKafkaIntegrationTest {
                 .name("test-parent")
                 .start();
 
-        try (Tracer.SpanInScope ignored = tracer.withSpan(parentSpan)) {
+        try (var _ = tracer.withSpan(parentSpan)) {
             orderService.create(request);
         } finally {
             parentSpan.end();
@@ -266,17 +266,12 @@ class OrderOutboxKafkaIntegrationTest {
         OrderItemRequestDto item = mock(OrderItemRequestDto.class);
         when(item.getDishId()).thenReturn(1L);
 
-        OrderRequestDto request = new OrderRequestDto();
-        request.setUserId(10L);
-        request.setVenueId(20L);
-        request.setTableId(30L);
-        request.setItems(List.of(item));
-
-        return request;
+        return new OrderRequestDto(10L, 20L, 30L, null, List.of(item));
     }
 
     private OutboxEvent createOutboxEvent(UUID eventId, Long orderId) {
-        String payload = """
+        String payload =
+                """
                 {
                   "eventId": "%s",
                   "orderId": %d,

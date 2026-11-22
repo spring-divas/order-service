@@ -1,5 +1,6 @@
 package org.spring.divas.order.feature.order;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/order")
+@RateLimiter(name = "orderService")
 public class OrderController {
 
     private final OrderService orderService;

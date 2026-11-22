@@ -93,7 +93,7 @@ class PollingOutboxSchedulerTest {
     }
 
     @Test
-    void shouldRestoreTraceContextAndPublishEvent() throws Exception {
+    void shouldRestoreTraceContextAndPublishEvent() {
         mockTracing();
 
         when(outboxRepository.findTop100ByPublishedAtIsNullOrderByCreatedAtAscIdAsc())
@@ -130,7 +130,7 @@ class PollingOutboxSchedulerTest {
     }
 
     @Test
-    void shouldPublishEventWhenTraceContextIsMissing() throws Exception {
+    void shouldPublishEventWhenTraceContextIsMissing() {
         mockTracing();
 
         event.setTraceparent(null);

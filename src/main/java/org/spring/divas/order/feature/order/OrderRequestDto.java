@@ -3,30 +3,40 @@ package org.spring.divas.order.feature.order;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Builder;
 import org.spring.divas.order.feature.orderitem.OrderItemRequestDto;
 
 import java.util.List;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class OrderRequestDto {
+@Builder
+public record OrderRequestDto(
+        Long userId,
+        @NotNull Long venueId,
+        @NotNull Long tableId,
+        OrderStatus status,
+        @NotEmpty List<@Valid OrderItemRequestDto> items
+) {
+    public OrderRequestDto() {
+        this(null, 0L, 0L, null, List.of());
+    }
 
-    private Long userId;
+    public Long getUserId() {
+        return userId();
+    }
 
-    @NotNull
-    private Long venueId;
+    public Long getVenueId() {
+        return venueId();
+    }
 
-    @NotNull
-    private Long tableId;
+    public Long getTableId() {
+        return tableId();
+    }
 
-    private OrderStatus status;
+    public OrderStatus getStatus() {
+        return status();
+    }
 
-    @NotEmpty
-    private List<@Valid OrderItemRequestDto> items;
+    public List<OrderItemRequestDto> getItems() {
+        return items();
+    }
 }

@@ -25,7 +25,7 @@ spec:
 
       containers:
         - name: order-service
-          image: order-service:latest
+          image: order-service:0.0.1-SNAPSHOT
           imagePullPolicy: Never
 
           securityContext:
@@ -38,10 +38,54 @@ spec:
           ports:
             - containerPort: 8080
 
-          envFrom:
-            - configMapRef:
-                name: order-config
+          env:
+            - name: APP_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: APP_ENVIRONMENT
+            - name: OTLP_TRACES_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: OTLP_TRACES_ENDPOINT
+            - name: USER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: USER_SERVICE_URL
+            - name: VENUE_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: VENUE_SERVICE_URL
+            - name: PAYMENT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: PAYMENT_SERVICE_URL
+            - name: PAYMENT_GRPC_TARGET
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: PAYMENT_GRPC_TARGET
+            - name: VENUE_GRPC_TARGET
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: VENUE_GRPC_TARGET
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: SPRING_KAFKA_BOOTSTRAP_SERVERS
+            - name: DISH_SYNC_TRANSPORT
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: DISH_SYNC_TRANSPORT
 
+          envFrom:
             - secretRef:
                 name: order-secret
 
@@ -49,9 +93,11 @@ spec:
             requests:
               cpu: 100m
               memory: 384Mi
+              ephemeral-storage: 100Mi
             limits:
               cpu: 500m
               memory: 512Mi
+              ephemeral-storage: 500Mi
 
           startupProbe:
             httpGet:
@@ -59,7 +105,7 @@ spec:
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 5
-            timeoutSeconds: 5
+            timeoutSeconds: 2
             failureThreshold: 60
 
           livenessProbe:
@@ -68,6 +114,8 @@ spec:
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
 
           readinessProbe:
             httpGet:
@@ -75,6 +123,8 @@ spec:
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
 
           volumeMounts:
             - name: tmp
@@ -91,8 +141,11 @@ metadata:
   name: order-service
 spec:
   type: ClusterIP
+
   selector:
     app: order-service
+
   ports:
-    - port: 8080
+    - name: http
+      port: 8080
       targetPort: 8080

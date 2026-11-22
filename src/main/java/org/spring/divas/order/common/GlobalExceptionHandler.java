@@ -1,58 +1,65 @@
 package org.spring.divas.order.common;
 
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import jakarta.validation.ConstraintViolationException;
 import org.spring.divas.order.feature.order.OrderNotFoundException;
 import org.spring.divas.order.feature.orderitem.OrderItemNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.net.URI;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(OrderNotFoundException.class)
     public ProblemDetail handleOrderNotFound(OrderNotFoundException ex) {
-        ProblemDetail problem =
-                ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Order Not Found");
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+        return createProblemDetail(HttpStatus.NOT_FOUND, "Order Not Found", ex.getMessage());
     }
 
     @ExceptionHandler(OrderItemNotFoundException.class)
     public ProblemDetail handleOrderItemNotFound(OrderItemNotFoundException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Order Item Not Found");
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+        return createProblemDetail(HttpStatus.NOT_FOUND, "Order Item Not Found", ex.getMessage());
+    }
+
+    @ExceptionHandler(RequestNotPermitted.class)
+    public ProblemDetail handleRateLimitExceeded(RequestNotPermitted ex) {
+        return createProblemDetail(HttpStatus.TOO_MANY_REQUESTS, "Rate Limit Exceeded", "Too many requests. Please try again later.");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidation(MethodArgumentNotValidException exception) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Request validation failed");
-        problem.setTitle("Validation Error");
-        problem.setProperty("timestamp", Instant.now());
+        ProblemDetail problem = createProblemDetail(HttpStatus.BAD_REQUEST, "Validation Error", "Request validation failed");
+        Map<String, String> errors = new HashMap<>();
+        for (FieldError error : exception.getBindingResult().getFieldErrors()) {
+            errors.put(error.getField(), error.getDefaultMessage());
+        }
+        problem.setProperty("errors", errors);
         return problem;
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ProblemDetail handleConstraintViolation(ConstraintViolationException exception) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
-        problem.setTitle("Validation Error");
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
+        return createProblemDetail(HttpStatus.BAD_REQUEST, "Validation Error", exception.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleUnexpectedException(Exception exception) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
-        problem.setTitle("Internal Server Error");
+        return createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "An unexpected error occurred");
+    }
+
+    private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
+        problem.setTitle(title);
+        problem.setType(URI.create("about:blank"));
         problem.setProperty("timestamp", Instant.now());
         return problem;
     }
-
 }

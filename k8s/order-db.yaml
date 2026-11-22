@@ -66,9 +66,11 @@ spec:
             requests:
               cpu: 50m
               memory: 128Mi
+              ephemeral-storage: 100Mi
             limits:
               cpu: 500m
               memory: 256Mi
+              ephemeral-storage: 500Mi
 
           volumeMounts:
             - name: order-db-data
@@ -98,8 +100,10 @@ metadata:
   name: order-db
 spec:
   type: ClusterIP
+
   selector:
     app: order-db
+
   ports:
     - port: 5432
       targetPort: 5432
