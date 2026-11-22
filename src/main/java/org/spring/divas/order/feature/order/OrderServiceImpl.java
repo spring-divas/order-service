@@ -60,7 +60,9 @@ public class OrderServiceImpl implements OrderService {
                 .map(OrderItemRequestDto::getDishId)
                 .toList();
         List<DishResponseDto> dishes = dishService.getAllByIds(ids);
-        UserResponseDto user = userClient.findById(dto.getUserId());
+        UserResponseDto user = dto.getUserId() != null
+                ? userClient.findById(dto.getUserId())
+                : null;
 
         Order order = orderMapper.toEntity(dto, dishes, user);
         Order saved = orderRepository.save(order);
