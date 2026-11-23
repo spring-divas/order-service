@@ -60,21 +60,21 @@ class OrderControllerSecurityTest {
     private JwtDecoder jwtDecoder;
 
     @Test
-    void guestCanCreateOrderWithoutUserId() throws Exception {
+    void shouldAllowGuestToCreateOrderWithoutUserId() throws Exception {
         mockMvc.perform(createOrder()).andExpect(status().isCreated());
 
         verify(orderService).create(any(OrderRequestDto.class), isNull());
     }
 
     @Test
-    void customerCreatesOrderWithUserIdFromToken() throws Exception {
+    void shouldCreateCustomerOrderWithUserIdFromToken() throws Exception {
         mockMvc.perform(createOrder().with(customer())).andExpect(status().isCreated());
 
         verify(orderService).create(any(OrderRequestDto.class), eq(10L));
     }
 
     @Test
-    void guestCannotTrackOrders() throws Exception {
+    void shouldRejectOrderTrackingForGuest() throws Exception {
         mockMvc.perform(get("/order")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/order/{id}", 1L)).andExpect(status().isUnauthorized());
 
@@ -82,7 +82,7 @@ class OrderControllerSecurityTest {
     }
 
     @Test
-    void customerCannotSeeGuestOrder() throws Exception {
+    void shouldForbidCustomerFromViewingGuestOrder() throws Exception {
         when(orderService.getById(1L)).thenReturn(OrderResponseDto.builder()
                 .id(1L).venueId(2L).tableId(3L).status(OrderStatus.NEW).build());
 
