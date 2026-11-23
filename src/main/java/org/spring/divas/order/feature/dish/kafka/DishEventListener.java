@@ -1,8 +1,7 @@
 package org.spring.divas.order.feature.dish.kafka;
 
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.spring.divas.order.feature.dish.DishService;
 import org.spring.divas.order.feature.processed.ProcessedEvent;
 import org.spring.divas.order.feature.processed.ProcessedEventRepository;
@@ -28,13 +27,12 @@ import java.util.UUID;
         matchIfMissing = true
 )
 @AllArgsConstructor
+@Slf4j
 public class DishEventListener {
     private final DishEventMapper dishEventMapper;
     private final DishService dishService;
     private final ProcessedEventRepository processedEventRepository;
     private final ObjectMapper objectMapper;
-
-    private static final Logger log = LoggerFactory.getLogger(DishEventListener.class);
 
     @RetryableTopic(
             backOff = @BackOff(delay = 1000, multiplier = 2.0),

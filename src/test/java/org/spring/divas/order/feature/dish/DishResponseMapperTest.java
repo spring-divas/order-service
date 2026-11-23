@@ -1,6 +1,7 @@
 package org.spring.divas.order.feature.dish;
 
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 import java.math.BigDecimal;
 
@@ -11,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 class DishResponseMapperTest {
 
-    private final DishResponseMapper mapper = new DishResponseMapper();
+    private final DishResponseMapper mapper = Mappers.getMapper(DishResponseMapper.class);
 
     @Test
     void shouldMapDishToDto() {

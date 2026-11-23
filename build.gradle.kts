@@ -28,6 +28,8 @@ val wiremockVersion = "3.13.2"
 val pactVersion = "4.7.5"
 val chaosVersion = "4.0.0"
 val testcontainersVersion = "2.0.5"
+val mapstructVersion = "1.6.3"
+val lombokMapstructBindingVersion = "0.2.0"
 
 checkstyle {
 	toolVersion = checkstyleVersion
@@ -62,6 +64,9 @@ dependencies {
 	implementation("io.github.resilience4j:resilience4j-spring-boot4:$resilience4jVersion")
 	implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
 
+	// Production dependencies - Mapping
+	implementation("org.mapstruct:mapstruct:$mapstructVersion")
+
 	// Testing dependencies
 	implementation("de.codecentric:chaos-monkey-spring-boot:$chaosVersion")
 
@@ -71,6 +76,8 @@ dependencies {
 
 	// Annotation processors
 	annotationProcessor("org.projectlombok:lombok")
+	annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
+	annotationProcessor("org.projectlombok:lombok-mapstruct-binding:$lombokMapstructBindingVersion")
 
 	// Runtime dependencies
 	runtimeOnly("org.postgresql:postgresql")

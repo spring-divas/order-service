@@ -10,6 +10,7 @@ import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.spring.divas.order.feature.dish.DishService;
 import org.spring.divas.order.feature.dish.kafka.DishCreatedEvent;
 import org.spring.divas.order.feature.dish.kafka.DishEventListener;
@@ -56,7 +57,7 @@ class DishEventsPactTest {
         ProcessedEventRepository processedEventRepository = mock(ProcessedEventRepository.class);
         when(processedEventRepository.existsByEventId(any())).thenReturn(false);
         DishEventListener listener = new DishEventListener(
-                new DishEventMapper(),
+                Mappers.getMapper(DishEventMapper.class),
                 dishService,
                 processedEventRepository,
                 new JsonMapper()

@@ -1,24 +1,12 @@
 package org.spring.divas.order.feature.dish.kafka;
 
+import org.mapstruct.Mapper;
 import org.spring.divas.order.feature.dish.DishRequestDto;
-import org.springframework.stereotype.Component;
 
-@Component
-public class DishEventMapper {
+@Mapper(componentModel = "spring")
+public interface DishEventMapper {
 
-    public DishRequestDto toRequestDto(DishCreatedEvent event) {
-        return DishRequestDto.builder()
-                .dishId(event.dishId())
-                .name(event.name())
-                .price(event.price())
-                .build();
-    }
+    DishRequestDto toRequestDto(DishCreatedEvent event);
 
-    public DishRequestDto toRequestDto(DishUpdatedEvent event) {
-        return DishRequestDto.builder()
-                .dishId(event.dishId())
-                .name(event.name())
-                .price(event.price())
-                .build();
-    }
+    DishRequestDto toRequestDto(DishUpdatedEvent event);
 }
