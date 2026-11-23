@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class OrderAccessTokensTest {
 
     @Test
-    void generatesDistinctUrlSafeTokens() {
+    void shouldGenerateDistinctUrlSafeTokens() {
         String first = OrderAccessTokens.generate();
         String second = OrderAccessTokens.generate();
 
@@ -20,7 +20,7 @@ class OrderAccessTokensTest {
     }
 
     @Test
-    void hashIsDeterministicSha256Hex() {
+    void shouldHashTokenDeterministicallyWithSha256() {
         String hash = OrderAccessTokens.hash("token");
 
         assertEquals(hash, OrderAccessTokens.hash("token"));
@@ -29,7 +29,7 @@ class OrderAccessTokensTest {
     }
 
     @Test
-    void matchesOnlyTheTokenWithTheSameHash() {
+    void shouldMatchOnlyTokenWithSameHash() {
         String token = OrderAccessTokens.generate();
         String hash = OrderAccessTokens.hash(token);
 

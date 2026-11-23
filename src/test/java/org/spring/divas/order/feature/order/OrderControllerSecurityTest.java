@@ -63,21 +63,21 @@ class OrderControllerSecurityTest {
     private JwtDecoder jwtDecoder;
 
     @Test
-    void guestCanCreateOrderWithoutUserId() throws Exception {
+    void shouldAllowGuestToCreateOrderWithoutUserId() throws Exception {
         mockMvc.perform(createOrder()).andExpect(status().isCreated());
 
         verify(orderService).create(any(OrderRequestDto.class), isNull());
     }
 
     @Test
-    void customerCreatesOrderWithUserIdFromToken() throws Exception {
+    void shouldCreateCustomerOrderWithUserIdFromToken() throws Exception {
         mockMvc.perform(createOrder().with(customer())).andExpect(status().isCreated());
 
         verify(orderService).create(any(OrderRequestDto.class), eq(10L));
     }
 
     @Test
-    void guestCannotTrackOrders() throws Exception {
+    void shouldRejectOrderTrackingForGuest() throws Exception {
         mockMvc.perform(get("/order")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/order/{id}", 1L)).andExpect(status().isUnauthorized());
 
@@ -85,7 +85,7 @@ class OrderControllerSecurityTest {
     }
 
     @Test
-    void customerCannotSeeGuestOrder() throws Exception {
+    void shouldForbidCustomerFromViewingGuestOrder() throws Exception {
         when(orderService.getById(1L)).thenReturn(OrderResponseDto.builder()
                 .id(1L).venueId(2L).tableId(3L).status(OrderStatus.NEW).build());
 
@@ -94,7 +94,7 @@ class OrderControllerSecurityTest {
     }
 
     @Test
-    void guestCanPayAndCancelOrderWithAccessToken() throws Exception {
+    void shouldAllowGuestToPayAndCancelOrderWithAccessToken() throws Exception {
         when(orderService.hasGuestAccess(1L, "guest-token")).thenReturn(true);
 
         mockMvc.perform(post("/order/{id}/pay", 1L)
@@ -109,7 +109,7 @@ class OrderControllerSecurityTest {
     }
 
     @Test
-    void guestCannotPayOrderWithoutValidAccessToken() throws Exception {
+    void shouldForbidGuestPaymentWithoutValidAccessToken() throws Exception {
         when(orderService.hasGuestAccess(1L, "wrong-token")).thenReturn(false);
 
         mockMvc.perform(post("/order/{id}/pay", 1L)).andExpect(status().isForbidden());
@@ -121,7 +121,7 @@ class OrderControllerSecurityTest {
     }
 
     @Test
-    void customerCannotPayGuestOrderWithoutAccessToken() throws Exception {
+    void shouldForbidCustomerFromPayingGuestOrderWithoutAccessToken() throws Exception {
         when(orderService.getById(1L)).thenReturn(OrderResponseDto.builder()
                 .id(1L).venueId(2L).tableId(3L).status(OrderStatus.NEW).build());
 

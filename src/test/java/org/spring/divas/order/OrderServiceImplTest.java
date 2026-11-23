@@ -306,7 +306,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void hasGuestAccess_shouldAcceptGuestOrderToken() {
+    void shouldAcceptAccessTokenOfGuestOrder() {
         String token = OrderAccessTokens.generate();
         Order guestOrder = Order.builder().id(1L)
                 .accessTokenHash(OrderAccessTokens.hash(token)).build();
@@ -317,7 +317,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void hasGuestAccess_shouldRejectTokensForOrdersOfRegisteredUsers() {
+    void shouldRejectAccessTokenForOrderOfRegisteredUser() {
         String token = OrderAccessTokens.generate();
         Order userOrder = Order.builder().id(1L).userId(10L)
                 .accessTokenHash(OrderAccessTokens.hash(token)).build();
