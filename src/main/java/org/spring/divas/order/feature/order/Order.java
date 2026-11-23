@@ -50,6 +50,9 @@ public class Order {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "access_token_hash", length = 64)
+    private String accessTokenHash;
+
     @OneToMany(
             mappedBy = "order",
             cascade = CascadeType.ALL,

@@ -1,5 +1,6 @@
 package org.spring.divas.order.feature.order;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import org.spring.divas.order.feature.orderitem.OrderItemResponseDto;
 
@@ -17,10 +18,11 @@ public record OrderResponseDto(
         Long tableId,
         OrderStatus status,
         LocalDateTime createdAt,
-        List<OrderItemResponseDto> items
+        List<OrderItemResponseDto> items,
+        @JsonInclude(JsonInclude.Include.NON_NULL) String accessToken
 ) {
     public OrderResponseDto() {
-        this(null, null, null, null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public Long getId() {
@@ -61,5 +63,10 @@ public record OrderResponseDto(
 
     public List<OrderItemResponseDto> getItems() {
         return items();
+    }
+
+    public OrderResponseDto withAccessToken(String token) {
+        return new OrderResponseDto(
+                id, userId, firstName, lastName, email, venueId, tableId, status, createdAt, items, token);
     }
 }
