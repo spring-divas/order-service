@@ -14,6 +14,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @EntityGraph(attributePaths = {"items"})
     Optional<Order> findById(Long id);
 
+    @EntityGraph(attributePaths = {"items"})
+    List<Order> findAllByUserId(Long userId);
+
     @Query(
             """
                 SELECT CASE WHEN COUNT(o) > 0 THEN true ELSE false END
