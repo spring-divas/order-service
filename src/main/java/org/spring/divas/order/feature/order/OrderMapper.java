@@ -45,7 +45,7 @@ public class OrderMapper {
         }
 
         Order order = Order.builder()
-                .userId(request.getUserId())
+                .userId(userId)
                 .firstName(user != null ? user.getFirstName() : null)
                 .lastName(user != null ? user.getLastName() : null)
                 .email(user != null ? user.getEmail() : null)

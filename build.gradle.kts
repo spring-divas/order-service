@@ -78,6 +78,7 @@ dependencies {
 
 	// Test dependencies
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.security:spring-security-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-grpc-client-test")
 	testImplementation("org.wiremock:wiremock-standalone:$wiremockVersion")
@@ -91,6 +92,8 @@ dependencies {
 	testImplementation("org.testcontainers:testcontainers-toxiproxy:$testcontainersVersion")
 
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testCompileOnly("org.projectlombok:lombok")
+	testAnnotationProcessor("org.projectlombok:lombok")
 }
 
 protobuf {

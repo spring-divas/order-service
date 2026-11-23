@@ -44,8 +44,9 @@ public class OrderController {
 
     @GetMapping("/{id:\\d+}")
     public OrderResponseDto getById(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-        requireOwnerOrAdmin(orderService.getById(id), jwt);
-        return orderService.getById(id);
+        OrderResponseDto order = orderService.getById(id);
+        requireOwnerOrAdmin(order, jwt);
+        return order;
     }
 
     @DeleteMapping("/{id:\\d+}")

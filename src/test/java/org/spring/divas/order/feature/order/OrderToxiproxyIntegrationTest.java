@@ -19,6 +19,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -53,7 +54,7 @@ class OrderToxiproxyIntegrationTest extends AbstractToxiproxyIntegrationTest {
 
     @Test
     void createsOrderThroughPostgresProxy() throws Exception {
-        mockMvc.perform(post("/order")
+        mockMvc.perform(post("/order").with(jwt().jwt(token -> token.subject("1").claim("roles", List.of("CUSTOMER"))))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonMapper.writeValueAsString(order())))
                 .andExpect(status().isCreated())
@@ -66,7 +67,7 @@ class OrderToxiproxyIntegrationTest extends AbstractToxiproxyIntegrationTest {
     void createsOrderReturnsServerErrorWhenPostgresResponseTimesOut() throws Exception {
         POSTGRES_PROXY.toxics().timeout("postgres-response-timeout", ToxicDirection.DOWNSTREAM, 0);
         evictConnections();
-        mockMvc.perform(post("/order")
+        mockMvc.perform(post("/order").with(jwt().jwt(token -> token.subject("1").claim("roles", List.of("CUSTOMER"))))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonMapper.writeValueAsString(order())))
                 .andExpect(status().isInternalServerError())
