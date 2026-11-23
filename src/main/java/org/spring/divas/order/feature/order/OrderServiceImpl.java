@@ -63,6 +63,10 @@ public class OrderServiceImpl implements OrderService {
                 : null;
 
         Order order = orderMapper.toEntity(dto, dishes, user, userId);
+        String accessToken = userId == null ? OrderAccessTokens.generate() : null;
+        if (accessToken != null) {
+            order.setAccessTokenHash(OrderAccessTokens.hash(accessToken));
+        }
         Order saved = orderRepository.save(order);
 
         log.info("Order saved with id={}", saved.getId());
@@ -83,7 +87,8 @@ public class OrderServiceImpl implements OrderService {
         outboxRepository.save(outboxEvent);
 
         recordTotalPrice(saved);
-        return orderMapper.toResponse(saved);
+        OrderResponseDto response = orderMapper.toResponse(saved);
+        return accessToken == null ? response : response.withAccessToken(accessToken);
     }
 
     @Override
@@ -232,5 +237,14 @@ public class OrderServiceImpl implements OrderService {
         } catch (Exception e) {
             log.warn("Failed to record order price metric", e);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean hasGuestAccess(Long id, String accessToken) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException(id));
+        return order.getUserId() == null
+                && OrderAccessTokens.matches(accessToken, order.getAccessTokenHash());
     }
 }

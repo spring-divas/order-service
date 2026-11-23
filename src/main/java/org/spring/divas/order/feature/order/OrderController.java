@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -28,6 +29,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @RequestMapping("/order")
 public class OrderController {
+
+    public static final String ORDER_TOKEN_HEADER = "X-Order-Token";
 
     private final OrderService orderService;
 
@@ -90,9 +93,10 @@ public class OrderController {
     public OrderResponseDto cancel(
             @PathVariable Long id,
             @RequestParam(defaultValue = "User cancelled order") String reason,
+            @RequestHeader(name = ORDER_TOKEN_HEADER, required = false) String accessToken,
             @AuthenticationPrincipal Jwt jwt
     ) {
-        requireOwnerOrAdmin(orderService.getById(id), jwt);
+        requireOrderAccess(id, jwt, accessToken);
         return orderService.cancel(id, reason);
     }
 
@@ -100,10 +104,22 @@ public class OrderController {
     public OrderResponseDto pay(
             @PathVariable Long id,
             @RequestParam(defaultValue = "false") boolean simulateFailure,
+            @RequestHeader(name = ORDER_TOKEN_HEADER, required = false) String accessToken,
             @AuthenticationPrincipal Jwt jwt
     ) {
-        requireOwnerOrAdmin(orderService.getById(id), jwt);
+        requireOrderAccess(id, jwt, accessToken);
         return orderService.pay(id, simulateFailure);
+    }
+
+    private void requireOrderAccess(Long id, Jwt jwt, String accessToken) {
+        if (accessToken != null && orderService.hasGuestAccess(id, accessToken)) {
+            return;
+        }
+        OrderResponseDto order = orderService.getById(id);
+        if (jwt == null) {
+            throw new AccessDeniedException("Order access token is missing or invalid");
+        }
+        requireOwnerOrAdmin(order, jwt);
     }
 
     private static void requireOwnerOrAdmin(OrderResponseDto order, Jwt jwt) {

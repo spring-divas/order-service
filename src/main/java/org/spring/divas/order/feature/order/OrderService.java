@@ -27,4 +27,6 @@ public interface OrderService {
     OrderResponseDto cancel(Long id, String reason);
 
     OrderResponseDto pay(Long id, boolean simulateFailure);
+
+    boolean hasGuestAccess(Long id, String accessToken);
 }
