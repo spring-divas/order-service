@@ -45,7 +45,7 @@ class DishEventListenerTest extends KafkaIntegrationTest {
         send(eventId, event(eventId, 101L));
         await().atMost(Duration.ofSeconds(5))
                 .until(() -> processedEventRepository.existsByEventId(eventId));
-        verify(dishService, times(1)).create(any(DishRequestDto.class));
+        verify(dishService, times(1)).upsert(any(DishRequestDto.class));
     }
 
     @Test
@@ -57,7 +57,7 @@ class DishEventListenerTest extends KafkaIntegrationTest {
                 .until(() -> processedEventRepository.existsByEventId(eventId));
         send(eventId, event);
         await().pollDelay(Duration.ofMillis(300)).atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
-            verify(dishService, times(1)).create(any(DishRequestDto.class));
+            verify(dishService, times(1)).upsert(any(DishRequestDto.class));
             assertThat(processedEventRepository.count()).isEqualTo(1);
         });
     }
@@ -66,7 +66,7 @@ class DishEventListenerTest extends KafkaIntegrationTest {
     void routesToDltOnFailure() {
         var eventId = UUID.randomUUID();
         doThrow(new RuntimeException())
-                .when(dishService).create(any(DishRequestDto.class));
+                .when(dishService).upsert(any(DishRequestDto.class));
         try (var dltConsumer = consumer("dish-events-dlt")) {
             send(eventId, event(eventId, 103L));
             var recordFound = awaitRecord(dltConsumer, eventId.toString());

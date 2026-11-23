@@ -62,6 +62,9 @@ public class OrderMapper {
     }
 
     public Order toEntity(OrderRequestDto request, List<DishResponseDto> dishes, UserResponseDto user) {
+        if (request == null) {
+            return null;
+        }
         return toEntity(request, dishes, user, request.getUserId());
     }
 }

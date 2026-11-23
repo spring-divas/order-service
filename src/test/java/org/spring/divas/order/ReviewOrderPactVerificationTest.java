@@ -12,11 +12,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.spring.divas.order.feature.order.OrderService;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(TestJwtAuthenticationConfig.class)
 @Provider("order-service")
 @Consumer("review-service")
 @PactFolder("${pactfolder.path}")
@@ -30,8 +32,8 @@ class ReviewOrderPactVerificationTest {
 
     @BeforeEach
     void configureTarget(PactVerificationContext context) {
-        when(orderService.hasUserOrderedDish(123L, 456L)).thenReturn(true);
-        when(orderService.hasUserBeenToVenue(123L, 456L)).thenReturn(true);
+        when(orderService.hasUserOrderedDish(1L, 456L)).thenReturn(true);
+        when(orderService.hasUserBeenToVenue(1L, 456L)).thenReturn(true);
         context.setTarget(new HttpTestTarget("localhost", port));
     }
 
