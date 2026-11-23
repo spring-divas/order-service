@@ -324,6 +324,7 @@ class OrderServiceImplTest {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(userOrder));
 
         assertFalse(orderService.hasGuestAccess(1L, token));
+    }
 
     @Test
     void shouldReturnAllOrdersOfUser() {
