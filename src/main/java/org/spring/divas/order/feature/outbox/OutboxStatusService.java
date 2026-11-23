@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
@@ -15,7 +16,7 @@ public class OutboxStatusService {
     @Transactional
     public void markPublished(Long id) {
         outboxRepository.findById(id).ifPresent(event -> {
-            event.setPublishedAt(LocalDateTime.now());
+            event.setPublishedAt(LocalDateTime.now(ZoneId.of("Europe/Kyiv")));
             event.setLastError(null);
         });
     }
