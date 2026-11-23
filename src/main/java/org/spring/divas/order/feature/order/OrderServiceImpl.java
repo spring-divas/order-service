@@ -5,8 +5,6 @@ import java.math.BigDecimal;
 import io.micrometer.observation.annotation.Observed;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spring.divas.order.feature.dish.DishService;
 import org.spring.divas.order.feature.orderitem.OrderItemRequestDto;
 import org.spring.divas.order.feature.dish.DishResponseDto;
@@ -101,7 +99,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponseDto> getAllByUserId(Long userId) {
-        return orderRepository.findByUserId(userId).stream().map(orderMapper::toResponse).toList();
+        return orderRepository.findById(userId).stream().map(orderMapper::toResponse).toList();
     }
 
     @Override
