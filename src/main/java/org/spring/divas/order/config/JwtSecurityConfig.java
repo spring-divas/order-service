@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
@@ -35,8 +36,16 @@ public class JwtSecurityConfig {
                 String encoded = client.send(request, HttpResponse.BodyHandlers.ofString()).body().trim();
                 byte[] key = Base64.getDecoder().decode(encoded);
                 return (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(key));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw e;
             } catch (Exception _) {
-                Thread.sleep(3000);
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw e;
+                }
             }
         }
     }
@@ -66,7 +75,9 @@ public class JwtSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
                     if (jwtEnabled) {
-                        auth.requestMatchers("/actuator/health/**").permitAll().anyRequest().authenticated();
+                        auth.requestMatchers("/actuator/health/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/order").permitAll()
+                                .anyRequest().authenticated();
                     } else {
                         auth.anyRequest().permitAll();
                     }

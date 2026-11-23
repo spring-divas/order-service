@@ -97,7 +97,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void cancel_shouldSetCancelledStatusAndIncrementCounter() {
+    void shouldSetCancelledStatusAndIncrementCounter() {
         when(orderRepository.findById(1L))
                 .thenReturn(Optional.of(order));
         when(orderRepository.save(order))
@@ -115,7 +115,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void cancel_shouldNotIncrementCounterWhenAlreadyCancelled() {
+    void shouldNotIncrementCounterWhenAlreadyCancelled() {
         order.setStatus(OrderStatus.CANCELLED);
 
         when(orderRepository.findById(1L))
@@ -132,7 +132,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void cancel_shouldRejectReadyOrder() {
+    void shouldRejectReadyOrderOnCancel() {
         order.setStatus(OrderStatus.READY);
 
         when(orderRepository.findById(1L))
@@ -146,7 +146,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void cancel_shouldThrowWhenOrderDoesNotExist() {
+    void shouldThrowWhenCancelledOrderDoesNotExist() {
         when(orderRepository.findById(999L))
                 .thenReturn(Optional.empty());
 
@@ -158,7 +158,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void refreshNotReadyOrdersMetric_shouldUpdateGaugeValue() {
+    void shouldUpdateGaugeValueWhenRefreshingNotReadyOrdersMetric() {
         when(orderRepository.countByStatusNotIn(List.of(OrderStatus.READY, OrderStatus.CANCELLED)))
                 .thenReturn(7L);
 
@@ -167,7 +167,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void create_shouldCreateOrderWithUserWhenUserIdIsProvided() {
+    void shouldCreateOrderWithUserWhenUserIdIsProvided() {
         OrderItemRequestDto itemDto = new OrderItemRequestDto(5L, 2);
         OrderRequestDto request = OrderRequestDto.builder()
                 .userId(10L)
@@ -196,7 +196,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void create_shouldCreateOrderWithoutUserWhenUserIdIsNull() {
+    void shouldCreateOrderWithoutUserWhenUserIdIsNull() {
         OrderItemRequestDto itemDto = new OrderItemRequestDto(5L, 2);
         OrderRequestDto request = OrderRequestDto.builder()
                 .userId(null)
@@ -223,7 +223,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void pay_shouldCallGrpcOutsideTransactionAndRereadOrder() {
+    void shouldCallGrpcOutsideTransactionAndRereadOrderOnPay() {
         Order updatedOrder = Order.builder()
                 .id(1L)
                 .status(OrderStatus.PAID)
@@ -252,7 +252,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void pay_whenGrpcThrowsException_shouldCatchAndStillRereadOrder() {
+    void shouldCatchAndStillRereadOrderWhenGrpcThrowsExceptionOnPay() {
         Order updatedOrder = Order.builder()
                 .id(1L)
                 .status(OrderStatus.PAYMENT_FAILED)
@@ -276,7 +276,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void pay_whenOrderNotFound_shouldThrowOrderNotFoundException() {
+    void shouldThrowOrderNotFoundExceptionWhenPayingMissingOrder() {
         when(orderRepository.findById(999L))
                 .thenReturn(Optional.empty());
 
@@ -287,7 +287,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void pay_whenUpdatedOrderNotFound_shouldThrowOrderNotFoundException() {
+    void shouldThrowOrderNotFoundExceptionWhenUpdatedOrderMissingOnPay() {
         when(orderRepository.findById(1L))
                 .thenReturn(Optional.of(order))
                 .thenReturn(Optional.empty());
@@ -312,5 +312,51 @@ class OrderServiceImplTest {
 
         assertEquals(List.of(firstResponse, secondResponse), result);
         verify(orderRepository, never()).findById(10L);
+    }
+
+    @Test
+    void shouldIgnoreUserIdFromRequestBodyForGuestOrder() {
+        OrderRequestDto request = OrderRequestDto.builder()
+                .userId(5L)
+                .venueId(1L)
+                .tableId(2L)
+                .items(List.of(new OrderItemRequestDto(5L, 2)))
+                .build();
+        DishResponseDto dish = DishResponseDto.builder().id(5L).build();
+
+        when(dishService.getAllByIds(List.of(5L))).thenReturn(List.of(dish));
+        when(orderMapper.toEntity(request, List.of(dish), null, null)).thenReturn(order);
+        when(orderRepository.save(order)).thenReturn(order);
+        when(orderEventMapper.toOutboxEvent(order)).thenReturn(OutboxEvent.builder().id(99L).build());
+        when(orderMapper.toResponse(order)).thenReturn(response);
+
+        orderService.create(request, null);
+
+        verify(userClient, never()).findById(any());
+        verify(orderMapper).toEntity(request, List.of(dish), null, null);
+    }
+
+    @Test
+    void shouldLoadProfileOfAuthenticatedUserInsteadOfUserIdFromRequestBody() {
+        OrderRequestDto request = OrderRequestDto.builder()
+                .userId(5L)
+                .venueId(1L)
+                .tableId(2L)
+                .items(List.of(new OrderItemRequestDto(5L, 2)))
+                .build();
+        DishResponseDto dish = DishResponseDto.builder().id(5L).build();
+        UserResponseDto userDto = UserResponseDto.builder().id(10L).firstName("John").build();
+
+        when(dishService.getAllByIds(List.of(5L))).thenReturn(List.of(dish));
+        when(userClient.findById(10L)).thenReturn(userDto);
+        when(orderMapper.toEntity(request, List.of(dish), userDto, 10L)).thenReturn(order);
+        when(orderRepository.save(order)).thenReturn(order);
+        when(orderEventMapper.toOutboxEvent(order)).thenReturn(OutboxEvent.builder().id(99L).build());
+        when(orderMapper.toResponse(order)).thenReturn(response);
+
+        orderService.create(request, 10L);
+
+        verify(userClient).findById(10L);
+        verify(userClient, never()).findById(5L);
     }
 }

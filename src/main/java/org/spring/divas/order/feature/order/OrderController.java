@@ -21,6 +21,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -31,10 +32,10 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
+    @PreAuthorize("isAnonymous() or hasAnyRole('CUSTOMER', 'ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     public OrderResponseDto create(@Valid @RequestBody OrderRequestDto dto, @AuthenticationPrincipal Jwt jwt) {
-        return orderService.create(dto, Long.valueOf(jwt.getSubject()));
+        return orderService.create(dto, jwt == null ? null : userId(jwt));
     }
 
     @GetMapping
@@ -62,8 +63,7 @@ public class OrderController {
             @AuthenticationPrincipal Jwt jwt
     ) {
         OrderResponseDto order = orderService.getById(id);
-        if (!isAdmin(jwt) && !order.getUserId().equals(userId(jwt))
-                && !canManageVenue(jwt, order.getVenueId())) {
+        if (!isAdmin(jwt) && !isOwner(order, jwt) && !canManageVenue(jwt, order.getVenueId())) {
             throw new AccessDeniedException("Order is outside the current user's permissions");
         }
         if (dto.getStatus() != null && !canManageVenue(jwt, order.getVenueId())) {
@@ -107,21 +107,30 @@ public class OrderController {
     }
 
     private static void requireOwnerOrAdmin(OrderResponseDto order, Jwt jwt) {
-        if (!isAdmin(jwt) && !order.getUserId().equals(userId(jwt))) {
+        if (!isAdmin(jwt) && !isOwner(order, jwt)) {
             throw new AccessDeniedException("Order does not belong to the current user");
         }
+    }
+
+    private static boolean isOwner(OrderResponseDto order, Jwt jwt) {
+        return Objects.equals(order.getUserId(), userId(jwt));
     }
 
     private static Long userId(Jwt jwt) {
         return Long.valueOf(jwt.getSubject());
     }
 
+    private static List<String> getRoles(Jwt jwt) {
+        List<String> roles = jwt.getClaimAsStringList("roles");
+        return roles != null ? roles : List.of();
+    }
+
     private static boolean isAdmin(Jwt jwt) {
-        return jwt.getClaimAsStringList("roles").contains("ADMIN");
+        return getRoles(jwt).contains("ADMIN");
     }
 
     private static boolean canManageVenue(Jwt jwt, Long venueId) {
-        return isAdmin(jwt) || jwt.getClaimAsStringList("roles").stream()
+        return isAdmin(jwt) || getRoles(jwt).stream()
                 .anyMatch(role -> role.equals("SENIOR " + venueId) || role.equals("JUNIOR " + venueId));
     }
 }
