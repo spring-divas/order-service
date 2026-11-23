@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -119,6 +120,17 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problem.getStatus());
         assertEquals("Internal Server Error", problem.getTitle());
         assertEquals("An unexpected error occurred", problem.getDetail());
+        assertNotNull(problem.getProperties().get("timestamp"));
+    }
+
+    @Test
+    void shouldHandleAccessDenied() {
+        ProblemDetail problem = handler.handleAccessDenied(
+                new AccessDeniedException("Order does not belong to the current user"));
+
+        assertEquals(HttpStatus.FORBIDDEN.value(), problem.getStatus());
+        assertEquals("Access Denied", problem.getTitle());
+        assertEquals("Order does not belong to the current user", problem.getDetail());
         assertNotNull(problem.getProperties().get("timestamp"));
     }
 }
