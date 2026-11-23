@@ -26,6 +26,7 @@ val logstashLogbackEncoderVersion = "9.0"
 val resilience4jVersion = "2.4.0"
 val wiremockVersion = "3.13.2"
 val pactVersion = "4.7.5"
+val chaosVersion = "4.0.0"
 
 checkstyle {
 	toolVersion = checkstyleVersion
@@ -48,6 +49,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-kafka")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
 
 	// Production dependencies - gRPC Client & Protobuf
 	implementation("org.springframework.boot:spring-boot-starter-grpc-client")
@@ -58,6 +60,9 @@ dependencies {
 	// Production dependencies - Resilience & Logging
 	implementation("io.github.resilience4j:resilience4j-spring-boot4:$resilience4jVersion")
 	implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
+
+	// Testing dependencies
+	implementation("de.codecentric:chaos-monkey-spring-boot:$chaosVersion")
 
 	// Compile-only dependencies
 	compileOnly("jakarta.annotation:jakarta.annotation-api")
@@ -74,22 +79,15 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-grpc-client-test")
-	testImplementation("org.wiremock:wiremock-standalone:3.13.2")
-
-	implementation("org.springframework.boot:spring-boot-starter-actuator")
-	implementation("de.codecentric:chaos-monkey-spring-boot:4.0.0")
+	testImplementation("org.wiremock:wiremock-standalone:$wiremockVersion")
 
 	testImplementation("org.springframework.kafka:spring-kafka-test")
 	testImplementation("org.wiremock:wiremock-standalone:$wiremockVersion")
 	testImplementation("com.h2database:h2")
 	testImplementation("au.com.dius.pact.provider:junit5:$pactVersion")
+	testImplementation("au.com.dius.pact.consumer:junit5:${pactVersion}")
 
-	testCompileOnly("org.projectlombok:lombok")
-	testAnnotationProcessor("org.projectlombok:lombok")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-	testImplementation("com.h2database:h2")
-	testImplementation("au.com.dius.pact.provider:junit5:4.7.5")
-	testImplementation("au.com.dius.pact.consumer:junit5:4.7.5")
 }
 
 protobuf {

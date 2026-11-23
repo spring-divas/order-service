@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.spring.divas.order.feature.payment.PaymentResponseDto;
 import org.spring.divas.order.feature.payment.ResilientPaymentClient;
-import org.spring.divas.order.feature.venue.DishResponseDto;
 import org.spring.divas.order.feature.venue.ResilientVenueClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -131,13 +130,15 @@ class ChaosMonkeyResilienceTest {
         assertThat(circuitBreaker.getState()).isEqualTo(CircuitBreaker.State.CLOSED);
 
         unleashExceptions();
+        List<Long> dishIds = List.of(1L);
         for (int i = 0; i < 10; i++) {
-            assertThatThrownBy(() -> venueClient.getDishesByIds(List.of(1L))).isInstanceOf(RuntimeException.class);
+            assertThatThrownBy(() -> venueClient.getDishesByIds(dishIds))
+                    .isInstanceOf(RuntimeException.class);
         }
 
         assertThat(circuitBreaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
         downstream.resetRequests();
-        assertThatThrownBy(() -> venueClient.getDishesByIds(List.of(1L)))
+        assertThatThrownBy(() -> venueClient.getDishesByIds(dishIds))
                 .isInstanceOf(CallNotPermittedException.class);
         downstream.verify(0, postRequestedFor(urlEqualTo("/api/dish/batch")));
 
