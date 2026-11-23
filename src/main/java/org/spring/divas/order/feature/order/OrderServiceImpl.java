@@ -104,7 +104,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponseDto> getAllByUserId(Long userId) {
-        return orderRepository.findById(userId).stream().map(orderMapper::toResponse).toList();
+        return orderRepository.findAllByUserId(userId).stream().map(orderMapper::toResponse).toList();
     }
 
     @Override
