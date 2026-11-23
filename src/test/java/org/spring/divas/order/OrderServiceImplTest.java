@@ -97,7 +97,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void cancel_shouldSetCancelledStatusAndIncrementCounter() {
+    void shouldSetCancelledStatusAndIncrementCounter() {
         when(orderRepository.findById(1L))
                 .thenReturn(Optional.of(order));
         when(orderRepository.save(order))
@@ -115,7 +115,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void cancel_shouldNotIncrementCounterWhenAlreadyCancelled() {
+    void shouldNotIncrementCounterWhenAlreadyCancelled() {
         order.setStatus(OrderStatus.CANCELLED);
 
         when(orderRepository.findById(1L))
@@ -132,7 +132,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void cancel_shouldRejectReadyOrder() {
+    void shouldRejectReadyOrderOnCancel() {
         order.setStatus(OrderStatus.READY);
 
         when(orderRepository.findById(1L))
@@ -146,7 +146,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void cancel_shouldThrowWhenOrderDoesNotExist() {
+    void shouldThrowWhenCancelledOrderDoesNotExist() {
         when(orderRepository.findById(999L))
                 .thenReturn(Optional.empty());
 
@@ -158,7 +158,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void refreshNotReadyOrdersMetric_shouldUpdateGaugeValue() {
+    void shouldUpdateGaugeValueWhenRefreshingNotReadyOrdersMetric() {
         when(orderRepository.countByStatusNotIn(List.of(OrderStatus.READY, OrderStatus.CANCELLED)))
                 .thenReturn(7L);
 
@@ -167,7 +167,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void create_shouldCreateOrderWithUserWhenUserIdIsProvided() {
+    void shouldCreateOrderWithUserWhenUserIdIsProvided() {
         OrderItemRequestDto itemDto = new OrderItemRequestDto(5L, 2);
         OrderRequestDto request = OrderRequestDto.builder()
                 .userId(10L)
@@ -196,7 +196,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void create_shouldCreateOrderWithoutUserWhenUserIdIsNull() {
+    void shouldCreateOrderWithoutUserWhenUserIdIsNull() {
         OrderItemRequestDto itemDto = new OrderItemRequestDto(5L, 2);
         OrderRequestDto request = OrderRequestDto.builder()
                 .userId(null)
@@ -223,7 +223,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void pay_shouldCallGrpcOutsideTransactionAndRereadOrder() {
+    void shouldCallGrpcOutsideTransactionAndRereadOrderOnPay() {
         Order updatedOrder = Order.builder()
                 .id(1L)
                 .status(OrderStatus.PAID)
@@ -252,7 +252,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void pay_whenGrpcThrowsException_shouldCatchAndStillRereadOrder() {
+    void shouldCatchAndStillRereadOrderWhenGrpcThrowsExceptionOnPay() {
         Order updatedOrder = Order.builder()
                 .id(1L)
                 .status(OrderStatus.PAYMENT_FAILED)
@@ -276,7 +276,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void pay_whenOrderNotFound_shouldThrowOrderNotFoundException() {
+    void shouldThrowOrderNotFoundExceptionWhenPayingMissingOrder() {
         when(orderRepository.findById(999L))
                 .thenReturn(Optional.empty());
 
@@ -287,7 +287,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void pay_whenUpdatedOrderNotFound_shouldThrowOrderNotFoundException() {
+    void shouldThrowOrderNotFoundExceptionWhenUpdatedOrderMissingOnPay() {
         when(orderRepository.findById(1L))
                 .thenReturn(Optional.of(order))
                 .thenReturn(Optional.empty());

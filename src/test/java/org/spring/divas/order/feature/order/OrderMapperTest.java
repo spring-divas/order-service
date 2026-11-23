@@ -185,7 +185,7 @@ class OrderMapperTest {
     }
 
     @Test
-    void shouldTestOrderRequestAndResponseDtoMethods() {
+    void shouldTestOrderRequestDtoMethods() {
         OrderRequestDto defaultRequest = new OrderRequestDto();
         assertNull(defaultRequest.userId());
         assertNull(defaultRequest.getUserId());
@@ -208,7 +208,10 @@ class OrderMapperTest {
         assertEquals(OrderStatus.NEW, customRequest.getStatus());
         assertNotNull(customRequest.toString());
         assertNotEquals(defaultRequest, customRequest);
+    }
 
+    @Test
+    void shouldTestOrderResponseDtoMethods() {
         OrderResponseDto defaultResponse = new OrderResponseDto();
         assertNull(defaultResponse.id());
         assertNull(defaultResponse.getId());
