@@ -64,6 +64,7 @@ public class DishEventListener {
                 .eventId(eventId)
                 .eventType(eventType)
                 .build());
+        log.info("Applied dish event: type={}, eventId={}", eventType, eventId);
     }
 
     @DltHandler
@@ -78,11 +79,11 @@ public class DishEventListener {
 
     private void handleDishCreated(String payload) {
         DishCreatedEvent event = objectMapper.readValue(payload, DishCreatedEvent.class);
-        dishService.create(dishEventMapper.toRequestDto(event));
+        dishService.upsert(dishEventMapper.toRequestDto(event));
     }
 
     private void handleDishUpdated(String payload) {
         DishUpdatedEvent event = objectMapper.readValue(payload, DishUpdatedEvent.class);
-        dishService.update(dishEventMapper.toRequestDto(event));
+        dishService.upsert(dishEventMapper.toRequestDto(event));
     }
 }

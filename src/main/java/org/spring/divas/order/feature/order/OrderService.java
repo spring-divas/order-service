@@ -4,9 +4,13 @@ import java.util.List;
 
 public interface OrderService {
 
-    OrderResponseDto create(OrderRequestDto dto);
+    OrderResponseDto create(OrderRequestDto dto, Long userId);
+    default OrderResponseDto create(OrderRequestDto dto) {
+        return create(dto, dto.getUserId());
+    }
 
     List<OrderResponseDto> getAll();
+    List<OrderResponseDto> getAllByUserId(Long userId);
 
     OrderResponseDto getById(Long id);
 

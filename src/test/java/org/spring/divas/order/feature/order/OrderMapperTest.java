@@ -6,7 +6,6 @@ import org.spring.divas.order.feature.dish.DishResponseDto;
 import org.spring.divas.order.feature.orderitem.OrderItem;
 import org.spring.divas.order.feature.orderitem.OrderItemMapper;
 import org.spring.divas.order.feature.orderitem.OrderItemRequestDto;
-import org.spring.divas.order.feature.orderitem.OrderItemResponseDto;
 import org.spring.divas.order.feature.user.UserResponseDto;
 import org.spring.divas.order.feature.user.UserRole;
 

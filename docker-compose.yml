@@ -23,6 +23,7 @@ services:
       - order-network
 
   order-service:
+
     build:
       context: .
       dockerfile: Dockerfile
@@ -34,20 +35,20 @@ services:
       - "${SERVER_HOST_PORT}:8080"
 
     environment:
+      USER_SERVICE_URL: ${USER_SERVICE_URL:-http://user-service:8080}
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
-      DISH_SYNC_TRANSPORT: ${DISH_SYNC_TRANSPORT}
-      VENUE_GRPC_TARGET: ${VENUE_GRPC_TARGET}
-      PAYMENT_GRPC_TARGET: ${PAYMENT_GRPC_TARGET}
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+      DISH_SYNC_TRANSPORT: ${DISH_SYNC_TRANSPORT:-grpc}
+      VENUE_GRPC_TARGET: ${VENUE_GRPC_TARGET:-static://venue-service:9090}
+      PAYMENT_GRPC_TARGET: ${PAYMENT_GRPC_TARGET:-static://payment-service:9090}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
       OTLP_TRACES_ENDPOINT: ${OTLP_TRACES_ENDPOINT}
-      PAYMENT_SERVICE_URL: ${PAYMENT_SERVICE_URL}
-      VENUE_SERVICE_URL: ${VENUE_SERVICE_URL}
-      USER_SERVICE_URL: ${USER_SERVICE_URL}
-      APP_ENVIRONMENT: ${APP_ENVIRONMENT}
+      PAYMENT_SERVICE_URL: ${PAYMENT_SERVICE_URL:-http://payment-service:8080}
+      VENUE_SERVICE_URL: ${VENUE_SERVICE_URL:-http://venue-service:8080}
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
 
     depends_on:
       order-db:
@@ -55,10 +56,15 @@ services:
 
     networks:
       - order-network
+      - feedo
 
 volumes:
   order-db-data:
 
 networks:
   order-network:
+    driver: bridge
+
+  feedo:
+    name: feedo
     driver: bridge

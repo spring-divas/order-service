@@ -5,11 +5,11 @@ import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.math.BigDecimal;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Component
+@Service
 public class OrderMetricsService {
 
     private final AtomicInteger notReadyOrders = new AtomicInteger(0);

@@ -416,14 +416,17 @@ class PaymentGrpcClientTest {
                 return new StreamObserver<>() {
                     @Override
                     public void onNext(PaymentStreamRequest value) {
+                        // empty
                     }
 
                     @Override
                     public void onError(Throwable t) {
+                        // empty
                     }
 
                     @Override
                     public void onCompleted() {
+                        // empty
                     }
                 };
             }

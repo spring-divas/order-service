@@ -7,6 +7,8 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
 import java.util.UUID;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 public class CorrelationIdInterceptor implements ClientHttpRequestInterceptor {
 
@@ -26,6 +28,9 @@ public class CorrelationIdInterceptor implements ClientHttpRequestInterceptor {
         }
 
         request.getHeaders().set(CORRELATION_ID, correlationId);
+        if (SecurityContextHolder.getContext().getAuthentication() instanceof JwtAuthenticationToken auth) {
+            request.getHeaders().setBearerAuth(auth.getToken().getTokenValue());
+        }
 
         return execution.execute(request, body);
     }

@@ -42,21 +42,32 @@ public class DishStreamGrpcClient {
         if (!subscribed.compareAndSet(false, true)) {
             return;
         }
-        asyncStub.subscribeDishes(SubscriptionRequest.getDefaultInstance(), new StreamObserver<>() {
-            @Override
-            public void onNext(DishChange change) {
-                dishService.upsert(dishProtoMapper.toRequestDto(change));
-            }
+        try {
+            asyncStub.subscribeDishes(SubscriptionRequest.getDefaultInstance(), new StreamObserver<>() {
+                @Override
+                public void onNext(DishChange change) {
+                    try {
+                        dishService.upsert(dishProtoMapper.toRequestDto(change));
+                    } catch (RuntimeException exception) {
+                        log.error("Failed to synchronize dish {} from venue-service", change.getId(), exception);
+                    }
+                }
 
-            @Override
-            public void onError(Throwable throwable) {
-                subscribed.set(false);
-            }
+                @Override
+                public void onError(Throwable throwable) {
+                    log.warn("Dish stream from venue-service failed; reconnecting", throwable);
+                    subscribed.set(false);
+                }
 
-            @Override
-            public void onCompleted() {
-                subscribed.set(false);
-            }
-        });
+                @Override
+                public void onCompleted() {
+                    log.warn("Dish stream from venue-service completed; reconnecting");
+                    subscribed.set(false);
+                }
+            });
+        } catch (RuntimeException exception) {
+            log.warn("Could not subscribe to the venue-service dish stream; retrying", exception);
+            subscribed.set(false);
+        }
     }
 }

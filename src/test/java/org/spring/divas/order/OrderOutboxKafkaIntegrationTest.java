@@ -95,7 +95,7 @@ class OrderOutboxKafkaIntegrationTest {
                         .email("Email")
                         .build());
 
-        when(orderMapper.toEntity(eq(request), any(), any()))
+        when(orderMapper.toEntity(eq(request), any(), any(), eq(10L)))
                 .thenReturn(Order.builder()
                         .userId(10L)
                         .firstName("First name")
@@ -114,7 +114,7 @@ class OrderOutboxKafkaIntegrationTest {
                 .when(outboxRepositorySpy)
                 .save(any(OutboxEvent.class));
 
-        assertThatThrownBy(() -> orderService.create(request))
+        assertThatThrownBy(() -> orderService.create(request, 10L))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Outbox save failed");
 
@@ -221,7 +221,7 @@ class OrderOutboxKafkaIntegrationTest {
                         .email("test@example.com")
                         .build());
 
-        when(orderMapper.toEntity(eq(request), any(), any()))
+        when(orderMapper.toEntity(eq(request), any(), any(), eq(10L)))
                 .thenReturn(Order.builder()
                         .userId(10L)
                         .firstName("First Name")
@@ -241,7 +241,7 @@ class OrderOutboxKafkaIntegrationTest {
                 .start();
 
         try (var _ = tracer.withSpan(parentSpan)) {
-            orderService.create(request);
+            orderService.create(request, 10L);
         } finally {
             parentSpan.end();
         }

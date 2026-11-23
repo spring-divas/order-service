@@ -5,8 +5,6 @@ import java.math.BigDecimal;
 import io.micrometer.observation.annotation.Observed;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spring.divas.order.feature.dish.DishService;
 import org.spring.divas.order.feature.orderitem.OrderItemRequestDto;
 import org.spring.divas.order.feature.dish.DishResponseDto;
@@ -53,7 +51,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     @Observed(name = "order.creation", contextualName = "create-order")
-    public OrderResponseDto create(OrderRequestDto dto) {
+    public OrderResponseDto create(OrderRequestDto dto, Long userId) {
         log.info("Creating order: {}", dto);
 
         List<Long> ids = dto.getItems().stream()
@@ -64,7 +62,7 @@ public class OrderServiceImpl implements OrderService {
                 ? userClient.findById(dto.getUserId())
                 : null;
 
-        Order order = orderMapper.toEntity(dto, dishes, user);
+        Order order = orderMapper.toEntity(dto, dishes, user, userId);
         Order saved = orderRepository.save(order);
 
         log.info("Order saved with id={}", saved.getId());
@@ -96,6 +94,12 @@ public class OrderServiceImpl implements OrderService {
                 .stream()
                 .map(orderMapper::toResponse)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderResponseDto> getAllByUserId(Long userId) {
+        return orderRepository.findById(userId).stream().map(orderMapper::toResponse).toList();
     }
 
     @Override

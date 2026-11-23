@@ -26,6 +26,7 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -62,8 +63,7 @@ class DishEventsPactTest {
         );
         handleCreatedEvent(listener, messages.getFirst());
         handleUpdatedEvent(listener, messages.getLast());
-        verify(dishService).create(any());
-        verify(dishService).update(any());
+        verify(dishService, times(2)).upsert(any());
     }
 
     private PactDslJsonBody dishEventContent() {

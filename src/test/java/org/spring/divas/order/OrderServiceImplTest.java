@@ -182,7 +182,7 @@ class OrderServiceImplTest {
 
         when(dishService.getAllByIds(List.of(5L))).thenReturn(List.of(dish));
         when(userClient.findById(10L)).thenReturn(userDto);
-        when(orderMapper.toEntity(request, List.of(dish), userDto)).thenReturn(order);
+        when(orderMapper.toEntity(request, List.of(dish), userDto, 10L)).thenReturn(order);
         when(orderRepository.save(order)).thenReturn(order);
         when(orderEventMapper.toOutboxEvent(order)).thenReturn(outboxEvent);
         when(orderMapper.toResponse(order)).thenReturn(response);
@@ -209,7 +209,7 @@ class OrderServiceImplTest {
         OutboxEvent outboxEvent = OutboxEvent.builder().id(99L).build();
 
         when(dishService.getAllByIds(List.of(5L))).thenReturn(List.of(dish));
-        when(orderMapper.toEntity(request, List.of(dish), null)).thenReturn(order);
+        when(orderMapper.toEntity(request, List.of(dish), null, null)).thenReturn(order);
         when(orderRepository.save(order)).thenReturn(order);
         when(orderEventMapper.toOutboxEvent(order)).thenReturn(outboxEvent);
         when(orderMapper.toResponse(order)).thenReturn(response);
@@ -264,10 +264,10 @@ class OrderServiceImplTest {
                 .thenReturn(Optional.of(updatedOrder));
         CompletableFuture<PaymentStreamResponse> failedFuture = new CompletableFuture<>();
         failedFuture.completeExceptionally(new RuntimeException("Payment service unavailable"));
-        when(paymentGrpcClient.processRealtimePaymentWithRetry(order, false))
-                .thenReturn(failedFuture);
         when(orderMapper.toResponse(updatedOrder))
                 .thenReturn(failedResponse);
+        when(paymentGrpcClient.processRealtimePaymentWithRetry(order, false))
+                .thenReturn(failedFuture);
 
         OrderResponseDto result = orderService.pay(1L, false);
 

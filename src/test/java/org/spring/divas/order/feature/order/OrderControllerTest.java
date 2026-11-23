@@ -10,6 +10,13 @@ import org.spring.divas.order.common.GlobalExceptionHandler;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.core.MethodParameter;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.List;
 
@@ -40,6 +47,23 @@ class OrderControllerTest {
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(orderController)
+                .setCustomArgumentResolvers(new HandlerMethodArgumentResolver() {
+                    @Override
+                    public boolean supportsParameter(MethodParameter parameter) {
+                        return parameter.hasParameterAnnotation(AuthenticationPrincipal.class)
+                                && parameter.getParameterType().equals(Jwt.class);
+                    }
+
+                    @Override
+                    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+                                                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+                        return Jwt.withTokenValue("test")
+                                .header("alg", "none")
+                                .subject("10")
+                                .claim("roles", List.of("ADMIN"))
+                                .build();
+                    }
+                })
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -54,7 +78,7 @@ class OrderControllerTest {
                 .status(OrderStatus.NEW)
                 .build();
 
-        when(orderService.create(any(OrderRequestDto.class))).thenReturn(responseDto);
+        when(orderService.create(any(OrderRequestDto.class), eq(10L))).thenReturn(responseDto);
 
         String json =
                 """
@@ -78,7 +102,7 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.userId").value(10));
 
-        verify(orderService).create(any(OrderRequestDto.class));
+        verify(orderService).create(any(OrderRequestDto.class), eq(10L));
     }
 
     @Test
@@ -91,7 +115,7 @@ class OrderControllerTest {
                 .status(OrderStatus.NEW)
                 .build();
 
-        when(orderService.create(any(OrderRequestDto.class))).thenReturn(responseDto);
+        when(orderService.create(any(OrderRequestDto.class), eq(10L))).thenReturn(responseDto);
 
         String json =
                 """
@@ -114,7 +138,7 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.id").value(2))
                 .andExpect(jsonPath("$.userId").doesNotExist());
 
-        verify(orderService).create(any(OrderRequestDto.class));
+        verify(orderService).create(any(OrderRequestDto.class), eq(10L));
     }
 
     @Test

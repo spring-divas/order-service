@@ -99,6 +99,7 @@ class ResilientUserClientTest {
     @UtilityClass
     private static class UserFixture {
         static final long USER_ID = 1L;
+
         UserResponseDto response() {
             return UserResponseDto.builder()
                     .id(USER_ID)
