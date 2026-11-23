@@ -2,6 +2,7 @@ package org.spring.divas.order.feature.orderitem;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 import org.spring.divas.order.feature.dish.DishResponseDto;
 
 import java.math.BigDecimal;
@@ -15,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class OrderItemMapperTest {
 
-    private final OrderItemMapper mapper = new OrderItemMapper();
+    private final OrderItemMapper mapper = Mappers.getMapper(OrderItemMapper.class);
 
     @Test
     void shouldReturnNullWhenToResponseWithNull() {

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.spring.divas.order.feature.dish.DishResponseDto;
 import org.spring.divas.order.feature.orderitem.OrderItem;
 import org.spring.divas.order.feature.orderitem.OrderItemMapper;
+import org.spring.divas.order.feature.orderitem.OrderItemMapperImpl;
 import org.spring.divas.order.feature.orderitem.OrderItemRequestDto;
 import org.spring.divas.order.feature.user.UserResponseDto;
 import org.spring.divas.order.feature.user.UserRole;
@@ -26,8 +27,8 @@ class OrderMapperTest {
 
     @BeforeEach
     void setUp() {
-        orderItemMapper = new OrderItemMapper();
-        orderMapper = new OrderMapper(orderItemMapper);
+        orderItemMapper = new OrderItemMapperImpl();
+        orderMapper = new OrderMapperImpl(orderItemMapper);
     }
 
     @Test
@@ -85,6 +86,7 @@ class OrderMapperTest {
         assertEquals(1, response.items().size());
         assertEquals(1, response.getItems().size());
         assertEquals("Pizza", response.items().get(0).name());
+        assertNull(response.accessToken());
     }
 
     @Test
@@ -139,6 +141,9 @@ class OrderMapperTest {
         assertEquals(10L, entity.getVenueId());
         assertEquals(20L, entity.getTableId());
         assertEquals(OrderStatus.NEW, entity.getStatus());
+        assertNull(entity.getId());
+        assertNull(entity.getCreatedAt());
+        assertNull(entity.getAccessTokenHash());
         assertNotNull(entity.getItems());
         assertEquals(1, entity.getItems().size());
 
@@ -148,6 +153,30 @@ class OrderMapperTest {
         assertEquals("Pasta", itemEntity.getName());
         assertEquals(3, itemEntity.getQuantity());
         assertEquals(new BigDecimal("12.00"), itemEntity.getPrice());
+        assertNull(itemEntity.getId());
+    }
+
+    @Test
+    void shouldIgnoreRequestStatusAndUseExplicitUserIdWhenMappingToEntity() {
+        DishResponseDto dish = DishResponseDto.builder()
+                .id(7L)
+                .name("Pasta")
+                .price(new BigDecimal("12.00"))
+                .build();
+
+        OrderRequestDto request = OrderRequestDto.builder()
+                .userId(99L)
+                .venueId(10L)
+                .tableId(20L)
+                .status(OrderStatus.READY)
+                .items(List.of(OrderItemRequestDto.builder().dishId(7L).quantity(1).build()))
+                .build();
+
+        Order entity = orderMapper.toEntity(request, List.of(dish), null, 5L);
+
+        assertEquals(OrderStatus.NEW, entity.getStatus());
+        assertEquals(5L, entity.getUserId());
+        assertEquals(entity, entity.getItems().get(0).getOrder());
     }
 
     @Test

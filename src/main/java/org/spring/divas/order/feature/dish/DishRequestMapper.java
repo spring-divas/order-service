@@ -1,14 +1,11 @@
 package org.spring.divas.order.feature.dish;
 
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Component
-public class DishRequestMapper {
-    public Dish toDish(DishRequestDto dto) {
-        return Dish.builder()
-                .id(dto.getDishId())
-                .name(dto.getName())
-                .price(dto.getPrice())
-                .build();
-    }
+@Mapper(componentModel = "spring")
+public interface DishRequestMapper {
+
+    @Mapping(target = "id", source = "dishId")
+    Dish toDish(DishRequestDto dto);
 }

@@ -1,14 +1,11 @@
 package org.spring.divas.order.feature.dish;
 
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Component
-public class DishResponseMapper {
-    public DishResponseDto toDto(Dish dish) {
-        return DishResponseDto.builder()
-                .id(dish.getId())
-                .name(dish.getName())
-                .price(dish.getPrice())
-                .build();
-    }
+@Mapper(componentModel = "spring")
+public interface DishResponseMapper {
+
+    @Mapping(target = "venueId", ignore = true)
+    DishResponseDto toDto(Dish dish);
 }

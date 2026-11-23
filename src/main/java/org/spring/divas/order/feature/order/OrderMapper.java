@@ -1,42 +1,26 @@
 package org.spring.divas.order.feature.order;
 
-import lombok.AllArgsConstructor;
-import org.spring.divas.order.feature.orderitem.OrderItem;
-import org.spring.divas.order.feature.orderitem.OrderItemMapper;
+import org.mapstruct.AfterMapping;
+import org.mapstruct.Context;
+import org.mapstruct.InjectionStrategy;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.spring.divas.order.feature.dish.DishResponseDto;
+import org.spring.divas.order.feature.orderitem.OrderItemMapper;
 import org.spring.divas.order.feature.user.UserResponseDto;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
-@AllArgsConstructor
-public class OrderMapper {
+@Mapper(
+        componentModel = "spring",
+        uses = OrderItemMapper.class,
+        injectionStrategy = InjectionStrategy.CONSTRUCTOR
+)
+public abstract class OrderMapper {
 
-    private final OrderItemMapper orderItemMapper;
-
-    public OrderResponseDto toResponse(Order order) {
-        if (order == null) {
-            return null;
-        }
-
-        return new OrderResponseDto(
-                order.getId(),
-                order.getUserId(),
-                order.getFirstName(),
-                order.getLastName(),
-                order.getEmail(),
-                order.getVenueId(),
-                order.getTableId(),
-                order.getStatus(),
-                order.getCreatedAt(),
-                order.getItems()
-                        .stream()
-                        .map(orderItemMapper::toResponse)
-                        .toList(),
-                null
-        );
-    }
+    @Mapping(target = "accessToken", ignore = true)
+    public abstract OrderResponseDto toResponse(Order order);
 
     public Order toEntity(
             OrderRequestDto request, List<DishResponseDto> dishes, UserResponseDto user, Long userId
@@ -44,22 +28,7 @@ public class OrderMapper {
         if (request == null) {
             return null;
         }
-
-        Order order = Order.builder()
-                .userId(userId)
-                .firstName(user != null ? user.getFirstName() : null)
-                .lastName(user != null ? user.getLastName() : null)
-                .email(user != null ? user.getEmail() : null)
-                .venueId(request.getVenueId())
-                .tableId(request.getTableId())
-                .status(OrderStatus.NEW)
-                .build();
-
-        List<OrderItem> items = orderItemMapper.toEntities(request.getItems(), dishes);
-        items.forEach(item -> item.setOrder(order));
-        order.setItems(items);
-
-        return order;
+        return mapToEntity(request, user, userId, dishes);
     }
 
     public Order toEntity(OrderRequestDto request, List<DishResponseDto> dishes, UserResponseDto user) {
@@ -67,5 +36,27 @@ public class OrderMapper {
             return null;
         }
         return toEntity(request, dishes, user, request.getUserId());
+    }
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "accessTokenHash", ignore = true)
+    @Mapping(target = "status", constant = "NEW")
+    @Mapping(target = "userId", source = "userId")
+    @Mapping(target = "firstName", source = "user.firstName")
+    @Mapping(target = "lastName", source = "user.lastName")
+    @Mapping(target = "email", source = "user.email")
+    @Mapping(target = "venueId", source = "request.venueId")
+    @Mapping(target = "tableId", source = "request.tableId")
+    @Mapping(target = "items", source = "request.items")
+    protected abstract Order mapToEntity(
+            OrderRequestDto request, UserResponseDto user, Long userId, @Context List<DishResponseDto> dishes
+    );
+
+    @AfterMapping
+    protected void linkItemsToOrder(@MappingTarget Order order) {
+        if (order.getItems() != null) {
+            order.getItems().forEach(item -> item.setOrder(order));
+        }
     }
 }

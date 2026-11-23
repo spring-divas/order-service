@@ -1,6 +1,7 @@
 package org.spring.divas.order.feature.dish.kafka;
 
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 import org.spring.divas.order.feature.dish.DishRequestDto;
 
 import java.math.BigDecimal;
@@ -11,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class DishEventMapperTest {
 
-    private final DishEventMapper mapper = new DishEventMapper();
+    private final DishEventMapper mapper = Mappers.getMapper(DishEventMapper.class);
 
     @Test
     void shouldMapDishCreatedEventToRequestDto() {
