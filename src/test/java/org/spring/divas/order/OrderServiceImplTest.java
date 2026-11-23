@@ -5,6 +5,7 @@ import io.micrometer.tracing.propagation.Propagator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -26,16 +27,23 @@ import org.spring.divas.order.feature.outbox.OutboxRepository;
 import org.spring.divas.order.feature.payment.PaymentGrpcClient;
 import org.spring.divas.order.feature.user.ResilientUserClient;
 import org.spring.divas.order.feature.user.UserResponseDto;
+import org.spring.divas.payment.v1.PaymentStreamResponse;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -212,5 +220,81 @@ class OrderServiceImplTest {
         verify(userClient, never()).findById(any());
         verify(orderRepository).save(order);
         verify(outboxRepository).save(outboxEvent);
+    }
+
+    @Test
+    void pay_shouldCallGrpcOutsideTransactionAndRereadOrder() {
+        Order updatedOrder = Order.builder()
+                .id(1L)
+                .status(OrderStatus.PAID)
+                .build();
+        OrderResponseDto updatedResponse = new OrderResponseDto();
+
+        when(orderRepository.findById(1L))
+                .thenReturn(Optional.of(order))
+                .thenReturn(Optional.of(updatedOrder));
+        when(paymentGrpcClient.processRealtimePaymentWithRetry(order, false))
+                .thenAnswer(invocation -> {
+                    assertFalse(TransactionSynchronizationManager.isActualTransactionActive(),
+                            "gRPC payment must be executed outside of any transaction");
+                    return CompletableFuture.completedFuture(null);
+                });
+        when(orderMapper.toResponse(updatedOrder))
+                .thenReturn(updatedResponse);
+
+        OrderResponseDto result = orderService.pay(1L, false);
+
+        assertSame(updatedResponse, result);
+        InOrder inOrder = inOrder(orderRepository, paymentGrpcClient);
+        inOrder.verify(orderRepository).findById(1L);
+        inOrder.verify(paymentGrpcClient).processRealtimePaymentWithRetry(order, false);
+        inOrder.verify(orderRepository).findById(1L);
+    }
+
+    @Test
+    void pay_whenGrpcThrowsException_shouldCatchAndStillRereadOrder() {
+        Order updatedOrder = Order.builder()
+                .id(1L)
+                .status(OrderStatus.PAYMENT_FAILED)
+                .build();
+        OrderResponseDto failedResponse = new OrderResponseDto();
+
+        when(orderRepository.findById(1L))
+                .thenReturn(Optional.of(order))
+                .thenReturn(Optional.of(updatedOrder));
+        CompletableFuture<PaymentStreamResponse> failedFuture = new CompletableFuture<>();
+        failedFuture.completeExceptionally(new RuntimeException("Payment service unavailable"));
+        when(paymentGrpcClient.processRealtimePaymentWithRetry(order, false))
+                .thenReturn(failedFuture);
+        when(orderMapper.toResponse(updatedOrder))
+                .thenReturn(failedResponse);
+
+        OrderResponseDto result = orderService.pay(1L, false);
+
+        assertSame(failedResponse, result);
+        verify(orderRepository, times(2)).findById(1L);
+    }
+
+    @Test
+    void pay_whenOrderNotFound_shouldThrowOrderNotFoundException() {
+        when(orderRepository.findById(999L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(OrderNotFoundException.class,
+                () -> orderService.pay(999L, false));
+
+        verify(paymentGrpcClient, never()).processRealtimePaymentWithRetry(any(), anyBoolean());
+    }
+
+    @Test
+    void pay_whenUpdatedOrderNotFound_shouldThrowOrderNotFoundException() {
+        when(orderRepository.findById(1L))
+                .thenReturn(Optional.of(order))
+                .thenReturn(Optional.empty());
+        when(paymentGrpcClient.processRealtimePaymentWithRetry(order, false))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
+        assertThrows(OrderNotFoundException.class,
+                () -> orderService.pay(1L, false));
     }
 }
