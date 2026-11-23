@@ -299,7 +299,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void getAllByUserId_shouldReturnOrdersOfTheUser() {
+    void shouldReturnAllOrdersOfUser() {
         Order first = Order.builder().id(5L).userId(10L).status(OrderStatus.NEW).build();
         Order second = Order.builder().id(6L).userId(10L).status(OrderStatus.PAID).build();
         OrderResponseDto firstResponse = OrderResponseDto.builder().id(5L).userId(10L).build();
