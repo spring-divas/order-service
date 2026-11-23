@@ -25,6 +25,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@SuppressWarnings("java:S4502") // Stateless JWT API without cookie-based authentication
 public class JwtSecurityConfig {
     @Bean
     @ConditionalOnProperty(name = "security.jwt.enabled", havingValue = "true", matchIfMissing = true)
