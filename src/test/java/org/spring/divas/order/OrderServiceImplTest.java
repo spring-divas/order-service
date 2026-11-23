@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.spring.divas.order.feature.dish.DishResponseDto;
 import org.spring.divas.order.feature.dish.DishService;
 import org.spring.divas.order.feature.order.Order;
+import org.spring.divas.order.feature.order.OrderAccessTokens;
 import org.spring.divas.order.feature.order.OrderEventMapper;
 import org.spring.divas.order.feature.order.OrderMapper;
 import org.spring.divas.order.feature.order.OrderMetricsService;
@@ -37,8 +38,10 @@ import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.inOrder;
@@ -190,6 +193,8 @@ class OrderServiceImplTest {
         OrderResponseDto result = orderService.create(request);
 
         assertNotNull(result);
+        assertNull(result.accessToken());
+        assertNull(order.getAccessTokenHash());
         verify(userClient).findById(10L);
         verify(orderRepository).save(order);
         verify(outboxRepository).save(outboxEvent);
@@ -217,6 +222,8 @@ class OrderServiceImplTest {
         OrderResponseDto result = orderService.create(request);
 
         assertNotNull(result);
+        assertNotNull(result.accessToken());
+        assertTrue(OrderAccessTokens.matches(result.accessToken(), order.getAccessTokenHash()));
         verify(userClient, never()).findById(any());
         verify(orderRepository).save(order);
         verify(outboxRepository).save(outboxEvent);
@@ -296,6 +303,27 @@ class OrderServiceImplTest {
 
         assertThrows(OrderNotFoundException.class,
                 () -> orderService.pay(1L, false));
+    }
+
+    @Test
+    void shouldAcceptAccessTokenOfGuestOrder() {
+        String token = OrderAccessTokens.generate();
+        Order guestOrder = Order.builder().id(1L)
+                .accessTokenHash(OrderAccessTokens.hash(token)).build();
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(guestOrder));
+
+        assertTrue(orderService.hasGuestAccess(1L, token));
+        assertFalse(orderService.hasGuestAccess(1L, OrderAccessTokens.generate()));
+    }
+
+    @Test
+    void shouldRejectAccessTokenForOrderOfRegisteredUser() {
+        String token = OrderAccessTokens.generate();
+        Order userOrder = Order.builder().id(1L).userId(10L)
+                .accessTokenHash(OrderAccessTokens.hash(token)).build();
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(userOrder));
+
+        assertFalse(orderService.hasGuestAccess(1L, token));
     }
 
     @Test

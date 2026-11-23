@@ -69,6 +69,8 @@ public class JwtSecurityConfig {
                     if (jwtEnabled) {
                         auth.requestMatchers("/actuator/health/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/order").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/order/*/pay").permitAll()
+                                .requestMatchers(HttpMethod.PATCH, "/order/*/cancel").permitAll()
                                 .anyRequest().authenticated();
                     } else {
                         auth.anyRequest().permitAll();

@@ -33,7 +33,8 @@ public class OrderMapper {
                 order.getItems()
                         .stream()
                         .map(orderItemMapper::toResponse)
-                        .toList()
+                        .toList(),
+                null
         );
     }
 
