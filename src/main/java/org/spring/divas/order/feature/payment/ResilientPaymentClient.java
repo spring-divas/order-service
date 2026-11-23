@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Slf4j
 @Component
@@ -27,6 +28,6 @@ public class ResilientPaymentClient {
                                                      Throwable throwable) {
         log.warn("Payment fallback activated for orderId={}, idempotencyKey={}: {}",
                 orderId, idempotencyKey, throwable != null ? throwable.getMessage() : "unknown");
-        return new PaymentResponseDto(null, orderId, "PENDING", LocalDateTime.now());
+        return new PaymentResponseDto(null, orderId, "PENDING", LocalDateTime.now(ZoneId.of("Europe/Kyiv")));
     }
 }

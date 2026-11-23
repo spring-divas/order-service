@@ -151,6 +151,40 @@ class OrderMapperTest {
     }
 
     @Test
+    void shouldMapOrderRequestDtoToEntityWithoutUser() {
+        DishResponseDto dish = DishResponseDto.builder()
+                .id(7L)
+                .name("Pasta")
+                .price(new BigDecimal("12.00"))
+                .build();
+
+        OrderItemRequestDto itemRequest = OrderItemRequestDto.builder()
+                .dishId(7L)
+                .quantity(3)
+                .build();
+
+        OrderRequestDto request = OrderRequestDto.builder()
+                .userId(null)
+                .venueId(10L)
+                .tableId(20L)
+                .status(OrderStatus.NEW)
+                .items(List.of(itemRequest))
+                .build();
+
+        Order entity = orderMapper.toEntity(request, List.of(dish), null);
+
+        assertNotNull(entity);
+        assertNull(entity.getUserId());
+        assertNull(entity.getFirstName());
+        assertNull(entity.getLastName());
+        assertNull(entity.getEmail());
+        assertEquals(10L, entity.getVenueId());
+        assertEquals(20L, entity.getTableId());
+        assertEquals(OrderStatus.NEW, entity.getStatus());
+        assertEquals(1, entity.getItems().size());
+    }
+
+    @Test
     void shouldTestOrderRequestAndResponseDtoMethods() {
         OrderRequestDto defaultRequest = new OrderRequestDto();
         assertNull(defaultRequest.userId());

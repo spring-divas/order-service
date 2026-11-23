@@ -45,10 +45,10 @@ public class OrderMapper {
         }
 
         Order order = Order.builder()
-                .userId(userId)
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
+                .userId(request.getUserId())
+                .firstName(user != null ? user.getFirstName() : null)
+                .lastName(user != null ? user.getLastName() : null)
+                .email(user != null ? user.getEmail() : null)
                 .venueId(request.getVenueId())
                 .tableId(request.getTableId())
                 .status(OrderStatus.NEW)

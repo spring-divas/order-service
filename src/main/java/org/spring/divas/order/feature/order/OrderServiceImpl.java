@@ -60,7 +60,9 @@ public class OrderServiceImpl implements OrderService {
                 .map(OrderItemRequestDto::getDishId)
                 .toList();
         List<DishResponseDto> dishes = dishService.getAllByIds(ids);
-        UserResponseDto user = userClient.findById(userId);
+        UserResponseDto user = dto.getUserId() != null
+                ? userClient.findById(dto.getUserId())
+                : null;
 
         Order order = orderMapper.toEntity(dto, dishes, user, userId);
         Order saved = orderRepository.save(order);
@@ -187,7 +189,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Transactional
     public OrderResponseDto pay(Long id, boolean simulateFailure) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException(id));

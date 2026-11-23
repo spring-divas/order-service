@@ -27,6 +27,7 @@ val resilience4jVersion = "2.4.0"
 val wiremockVersion = "3.13.2"
 val pactVersion = "4.7.5"
 val chaosVersion = "4.0.0"
+val testcontainersVersion = "2.0.5"
 
 checkstyle {
 	toolVersion = checkstyleVersion
@@ -86,6 +87,8 @@ dependencies {
 	testImplementation("com.h2database:h2")
 	testImplementation("au.com.dius.pact.provider:junit5:$pactVersion")
 	testImplementation("au.com.dius.pact.consumer:junit5:${pactVersion}")
+	testImplementation("org.testcontainers:testcontainers-postgresql:$testcontainersVersion")
+	testImplementation("org.testcontainers:testcontainers-toxiproxy:$testcontainersVersion")
 
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
