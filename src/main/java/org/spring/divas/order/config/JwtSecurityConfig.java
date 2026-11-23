@@ -35,8 +35,16 @@ public class JwtSecurityConfig {
                 String encoded = client.send(request, HttpResponse.BodyHandlers.ofString()).body().trim();
                 byte[] key = Base64.getDecoder().decode(encoded);
                 return (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(key));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw e;
             } catch (Exception _) {
-                Thread.sleep(3000);
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw e;
+                }
             }
         }
     }

@@ -205,7 +205,7 @@ class OrderControllerTest {
     @Test
     void shouldCancelOrder() throws Exception {
         OrderResponseDto dto = OrderResponseDto.builder().id(5L).status(OrderStatus.CANCELLED).build();
-        when(orderService.cancel(eq(5L), eq("User cancelled"))).thenReturn(dto);
+        when(orderService.cancel(5L, "User cancelled")).thenReturn(dto);
 
         mockMvc.perform(patch("/order/5/cancel")
                         .param("reason", "User cancelled"))
@@ -219,7 +219,7 @@ class OrderControllerTest {
     @Test
     void shouldPayOrder() throws Exception {
         OrderResponseDto dto = OrderResponseDto.builder().id(5L).status(OrderStatus.PAID).build();
-        when(orderService.pay(eq(5L), eq(false))).thenReturn(dto);
+        when(orderService.pay(5L, false)).thenReturn(dto);
 
         mockMvc.perform(post("/order/5/pay")
                         .param("simulateFailure", "false"))

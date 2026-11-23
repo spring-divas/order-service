@@ -116,12 +116,17 @@ public class OrderController {
         return Long.valueOf(jwt.getSubject());
     }
 
+    private static List<String> getRoles(Jwt jwt) {
+        List<String> roles = jwt.getClaimAsStringList("roles");
+        return roles != null ? roles : List.of();
+    }
+
     private static boolean isAdmin(Jwt jwt) {
-        return jwt.getClaimAsStringList("roles").contains("ADMIN");
+        return getRoles(jwt).contains("ADMIN");
     }
 
     private static boolean canManageVenue(Jwt jwt, Long venueId) {
-        return isAdmin(jwt) || jwt.getClaimAsStringList("roles").stream()
+        return isAdmin(jwt) || getRoles(jwt).stream()
                 .anyMatch(role -> role.equals("SENIOR " + venueId) || role.equals("JUNIOR " + venueId));
     }
 }
