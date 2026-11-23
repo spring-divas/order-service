@@ -325,4 +325,50 @@ class OrderServiceImplTest {
 
         assertFalse(orderService.hasGuestAccess(1L, token));
     }
+
+    @Test
+    void shouldIgnoreUserIdFromRequestBodyForGuestOrder() {
+        OrderRequestDto request = OrderRequestDto.builder()
+                .userId(5L)
+                .venueId(1L)
+                .tableId(2L)
+                .items(List.of(new OrderItemRequestDto(5L, 2)))
+                .build();
+        DishResponseDto dish = DishResponseDto.builder().id(5L).build();
+
+        when(dishService.getAllByIds(List.of(5L))).thenReturn(List.of(dish));
+        when(orderMapper.toEntity(request, List.of(dish), null, null)).thenReturn(order);
+        when(orderRepository.save(order)).thenReturn(order);
+        when(orderEventMapper.toOutboxEvent(order)).thenReturn(OutboxEvent.builder().id(99L).build());
+        when(orderMapper.toResponse(order)).thenReturn(response);
+
+        orderService.create(request, null);
+
+        verify(userClient, never()).findById(any());
+        verify(orderMapper).toEntity(request, List.of(dish), null, null);
+    }
+
+    @Test
+    void shouldLoadProfileOfAuthenticatedUserInsteadOfUserIdFromRequestBody() {
+        OrderRequestDto request = OrderRequestDto.builder()
+                .userId(5L)
+                .venueId(1L)
+                .tableId(2L)
+                .items(List.of(new OrderItemRequestDto(5L, 2)))
+                .build();
+        DishResponseDto dish = DishResponseDto.builder().id(5L).build();
+        UserResponseDto userDto = UserResponseDto.builder().id(10L).firstName("John").build();
+
+        when(dishService.getAllByIds(List.of(5L))).thenReturn(List.of(dish));
+        when(userClient.findById(10L)).thenReturn(userDto);
+        when(orderMapper.toEntity(request, List.of(dish), userDto, 10L)).thenReturn(order);
+        when(orderRepository.save(order)).thenReturn(order);
+        when(orderEventMapper.toOutboxEvent(order)).thenReturn(OutboxEvent.builder().id(99L).build());
+        when(orderMapper.toResponse(order)).thenReturn(response);
+
+        orderService.create(request, 10L);
+
+        verify(userClient).findById(10L);
+        verify(userClient, never()).findById(5L);
+    }
 }
